@@ -1,1 +1,4 @@
-# neurips_goal_real_robots_starter_kit
+# Starter Kit
+
+# Author
+**[Sharada Mohanty](https://twitter.com/MeMohanty)**

@@ -1,0 +1,7 @@
+{
+  "challenge_id": "goal_real_robots_challenge_2019",
+  "grader_id": "goal_real_robots_challenge_2019",
+  "authors": ["mohanty"],
+  "description": "Robot open-Ended Autonomous Learning (REAL) Challenge.",
+  "debug": true
+}

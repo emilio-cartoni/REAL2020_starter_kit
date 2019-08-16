@@ -1,0 +1,8 @@
+curl
+git
+vim
+ssh
+gcc
+g++
+ffmpeg
+xvfb

@@ -1,0 +1,42 @@
+name: real_robots
+channels:
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1
+  - ca-certificates=2019.5.15
+  - certifi=2019.6.16
+  - libedit=3.1.20181209
+  - libffi=3.2.1
+  - libgcc-ng=9.1.0
+  - libstdcxx-ng=9.1.0
+  - ncurses=6.1
+  - openssl=1.1.1c
+  - pip=19.1.1
+  - python=3.6.9
+  - readline=7.0
+  - setuptools=41.0.1
+  - sqlite=3.29.0
+  - tk=8.6.8
+  - wheel=0.33.4
+  - xz=5.2.4
+  - zlib=1.2.11
+  - pip:
+    - aicrowd-api==0.1.23
+    - aicrowd-repo2docker==0.9.1
+    - click==7.0
+    - docker==4.0.2
+    - escapism==1.0.0
+    - jinja2==2.10.1
+    - markupsafe==1.1.1
+    - pillow==6.1.0
+    - pybullet==2.5.3
+    - python-json-logger==0.1.11
+    - real-robots==0.1.13
+    - redis==3.3.6
+    - ruamel-yaml==0.16.1
+    - ruamel-yaml-clib==0.1.2
+    - semver==2.8.1
+    - toml==0.10.0
+    - websocket-client==0.56.0
+prefix: /home/mohanty/anaconda3/envs/real_robots
+
