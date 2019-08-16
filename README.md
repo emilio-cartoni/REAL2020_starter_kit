@@ -123,7 +123,7 @@ Then you can add the correct git remote, and finally submit by doing :
 ```
 cd neurips_goal_real_robots_starter_kit
 # Add AIcrowd git remote endpoint
-git remote add aicrowd git@gitlab.aicrowd.com/:<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit.git
+git remote add aicrowd git@gitlab.aicrowd.com:<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit.git
 git push aicrowd master
 
 # Create a tag for your submission and push
