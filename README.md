@@ -109,6 +109,9 @@ This is used to map your submission to the said challenge, so please remember to
 If you set `debug` to `true`, then the evaluation will run on a separate set of 20 environments, and the logs from your submitted code (if it fails), will be made available to you to help you debug.
 **NOTE** : **IMPORTANT** : By default we have set `debug:false`, so when you have done the basic integration testing of your code, and are ready to make a final submission, please do make sure to set `debug` to `true` in `aicrowd.json`.
 
+- `my_controller.py`
+  The task is to implement your own controller my following the template provided in `my_controller.py`
+
 ## Submission
 
 To make a submission, you will have to create a private repository on [https://gitlab.aicrowd.com/](https://gitlab.aicrowd.com/).
