@@ -56,7 +56,7 @@ python local_evaluation.py
 
 ```
 pip install -U aicrowd-repo2docker
-# This also expects that you have Docker installed
+# This also expects that you have Docker, Nvidia-Docker installed
 
 ./debug.sh
 ```
