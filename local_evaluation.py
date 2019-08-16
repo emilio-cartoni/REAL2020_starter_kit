@@ -4,7 +4,7 @@ import real_robots
 from my_controller import SubmittedPolicy
 import os
 
-DATASET_PATH=os.getenv("AICROWD_DATASET_PATH", "./goals.npy.npz")
+DATASET_PATH=os.getenv("AICROWD_DATASET_PATH", "./data/goals.npy.npz")
 
 result, detailed_scores = real_robots.evaluate(
                 SubmittedPolicy,
