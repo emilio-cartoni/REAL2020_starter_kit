@@ -31,7 +31,7 @@ dependencies:
     - pillow==6.1.0
     - pybullet==2.5.3
     - python-json-logger==0.1.11
-    - real-robots==0.1.13
+    - real-robots==0.1.14
     - redis==3.3.6
     - ruamel-yaml==0.16.1
     - ruamel-yaml-clib==0.1.2
