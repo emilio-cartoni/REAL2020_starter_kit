@@ -11,7 +11,7 @@ In the first round of the competition, the Intrinsic Phase will be skipped.
 ### Dependencies 
 
 - **Anaconda** (By following instructions [here](https://www.anaconda.com/download)) At least version `4.5.11` is required to correctly populate `environment.yml`.
-- **real-robots** [PyPi](https://pypi.org/project/real-robots/)
+- **real-robots** [PyPI](https://pypi.org/project/real-robots/)
 
 ### Setup
 
