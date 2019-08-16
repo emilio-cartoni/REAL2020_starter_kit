@@ -141,7 +141,6 @@ You now should be able to see the details of your submission at :
 **NOTE**: Remember to update your username in the link above :wink:
 
 In the link above, you should start seeing something like this take shape (the whole evaluation can take a bit of time, so please be a bit patient too :wink: ) :
-![]()
 
 **TODO** : Add screenshot
 
