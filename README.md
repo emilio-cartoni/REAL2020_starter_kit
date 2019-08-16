@@ -83,7 +83,7 @@ You can specify your software environment by using all the [available configurat
 
 # What should my code structure be like ?
 
-Please follow the structure documented in the included [run.py](https://github.com/AIcrowd/flatland-challenge-starter-kit/blob/master/run.py) to adapt
+Please follow the structure documented in the included [my_controller.py](https://github.com/AIcrowd/neurips_goal_real_robots_starter_kit/blob/master/my_controller.py) to adapt
 your already existing code to the required structure for this round.
 
 ## Important Concepts
@@ -110,7 +110,8 @@ If you set `debug` to `true`, then the evaluation will run on a separate set of 
 **NOTE** : **IMPORTANT** : By default we have set `debug:false`, so when you have done the basic integration testing of your code, and are ready to make a final submission, please do make sure to set `debug` to `true` in `aicrowd.json`.
 
 - `my_controller.py`
-  The task is to implement your own controller my following the template provided in `my_controller.py`
+  The task is to implement your own controller my following the template provided in `my_controller.py`.
+  The `my_controller.py` file should finally reference the implemented class as `SubmittedPolicy`
 
 ## Submission
 
