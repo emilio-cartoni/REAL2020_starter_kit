@@ -20,6 +20,7 @@ dependencies:
   - wheel=0.33.4
   - xz=5.2.4
   - zlib=1.2.11
+  - numpy
   - pip:
     - aicrowd-api==0.1.23
     - aicrowd-repo2docker==0.9.1
