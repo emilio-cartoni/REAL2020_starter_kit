@@ -141,13 +141,14 @@ git push aicrowd submission-v0.1
 ```
 
 You now should be able to see the details of your submission at :
-[gitlab.aicrowd.com//<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues](gitlab.aicrowd.com//<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues)
+[https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues](https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues)
 
 **NOTE**: Remember to update your username in the link above :wink:
 
 In the link above, you should start seeing something like this take shape (the whole evaluation can take a bit of time, so please be a bit patient too :wink: ) :
 
-**TODO** : Add screenshot
+![image](https://user-images.githubusercontent.com/18488075/63256469-ed524780-c277-11e9-825a-4ea5acbbcf6c.png)
+
 
 **Best of Luck** :tada: :tada:
 
