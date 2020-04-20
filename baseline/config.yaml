@@ -1,0 +1,25 @@
+abstraction:
+  precision: 8
+  type: pos_noq
+planner:
+  replan: true
+  try_random: false
+  type: mega
+simulation:
+  action_type: xy_push
+  data_dir: data
+  experience_data: baseline/filtered_transitions_15000000_12486_1_4170_466197_60x128_pos_noq_4_xy_push.npy
+  extrinsic_steps: 10000
+  extrinsic_trials: 50
+  goals_file: goals-s2020-0-0-0-0-0-0-0-50-1.npy.npz
+  human: false
+  intrinsic_steps: 12000000
+  objects: 1
+  ref_score: noplan50rnd.npy
+  run_extrinsic: true
+  run_intrinsic: false
+  save_images: false
+  save_masks: false
+  save_pngs: false
+  save_steps: false
+  use_experience_data: true
