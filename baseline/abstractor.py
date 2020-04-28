@@ -52,14 +52,11 @@ class DynamicAbstractor():
 
     Args:
         actions (list): a list of (precondition, action, postcondition), where conditions are float lists 
-        gaussian_approximation (boolean): if true, then gaussine is used to estimate the significant distances experienced for each variable of conditions
 
     Attributes:
         actions (list): where the input actions are saved
         dictionary_abstract_actions (dict): where abstract actions are saved. The keys will be the levels of abstraction and the values ​​will be the lists of abstract actions
-        dictionary_distance_actions (dict): where distances between actions are saved. The keys will be the levels of abstraction and the values ​​will be the lists of abstract actions
         lists_significative_differences (list): where significant distances are saved for each condition variable. These will be used to relax conditions.
-        max_abstr (int): where the number of abstractions is saved.
     '''
     def __init__(self, actions):
         if len(actions[0]) != 3:
@@ -72,180 +69,48 @@ class DynamicAbstractor():
         
         self.actions = actions
         self.dictionary_abstract_actions = {}
-        self.dictionary_distance_actions = {}
 
         #For each variable in actions condition it add a list to put the significative differences 
-        precondition_dimension = len(actions[0][0])
-        self.lists_significative_differences = [[] for i in range(precondition_dimension)]
+        condition_dimension = len(actions[0][0])
+        self.lists_significative_differences = [[] for i in range(condition_dimension)]
 
-        ordered_differences_queues = [pq.PriorityQueue() for i in range(precondition_dimension)]   
+        ordered_differences_queues = [pq.PriorityQueue() for i in range(condition_dimension)]   
 
-        for i in range(precondition_dimension): 
+        differences = abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))
+        for i in range(condition_dimension): 
             for j in range(len(actions)): 
-                ordered_differences_queues[i].enqueue(None, abs(actions[j][0][i]-actions[j][2][i]))         
+                ordered_differences_queues[i].enqueue(None, differences[j][i])         
 
-        points = [[] for i in range(precondition_dimension)]
-        for i in range(len(actions)):   
-            for j in range(len(points)): 
-                points[j] += [actions[i][0][j],actions[i][2][j]] 
+        actions_to_remove = int(np.floor(len(actions)*config.abst['percentage_of_actions_ignored_at_the_extremes']))
         
-        max_len = 0        
-        for i in range(len(points)):
-            if max_len < np.max(points[i])-np.min(points[i]):
-                max_len = np.max(points[i])-np.min(points[i])
-
-        proporsions = [max_len/(np.max(points[i])-np.min(points[i])) for i in range(precondition_dimension)]
-
-        n_abstractions = 200
-        jump_size = int(np.floor(len(actions)/n_abstractions))
-        five_percent = int(np.floor(len(actions)*0.05))
-        for i in range(precondition_dimension): 
+        for i in range(condition_dimension): 
             sup = ordered_differences_queues[i].get_queue_values()
-            for j in np.linspace(five_percent,len(actions)-five_percent,n_abstractions).round(0):
-                
+            for j in np.linspace(actions_to_remove,len(actions)-actions_to_remove, config.abst['total_abstraction']).round(0):
                 self.lists_significative_differences[i] += [sup[int(j)]]
-
-        self.max_abstr = n_abstractions
             
 
-    def get_cond_abstr(self, condition, abstraction_level):
+    def get_abstraction(self, abstraction_level):
         '''
-        Transforms the input float vector into a vector of intervals representing the abstract condition at k level
-
-        Args:
-            condition (list): float list
-            abstraction_level (int)
-
-        Returns:
-            intervals vector (numpy.ndarray of Interval istances)         
-        '''
-        intervals_vector = []
-        for j in range(len(condition)):     
-            if abstraction_level < len(self.lists_significative_differences[j]):
-                k = self.lists_significative_differences[j][abstraction_level]/2 
-                intervals_vector += [Interval(condition[j]-k, condition[j]+k)]
-            else:
-                k = self.lists_significative_differences[j][-1]/2
-                intervals_vector += [Interval(condition[j]-k, condition[j]+k)]
-        return np.array(intervals_vector)
-
-    def get_actions_abstr(self, abstraction_level):
-        '''
-        Transform all conditions contained in actions with get_cond_abstr(abstraction_level)
+        Calculate the vector representing the abstraction required as input in each variable
 
         Args:
             abstraction_level (int)
 
         Returns:
-            actions list (list)         
-        '''
-        if abstraction_level in self.dictionary_abstract_actions.keys():
-            return self.dictionary_abstract_actions[abstraction_level]
-        else:
-            newActions = []
-            for i in range(len(self.actions)):
-                action = self.actions[i]
-                pre,act,post = action
-                intervalsPre = self.get_cond_abstr(pre, abstraction_level)
-                intervalsPost = self.get_cond_abstr(post, abstraction_level)
-                newActions += [[np.array(intervalsPre),act,np.array(intervalsPost)]]
-            self.dictionary_abstract_actions[abstraction_level] = newActions
-            return newActions
-
-    def get_action_abstr(self, action, abstraction_level):
-        '''
-        Transform the conditions contained in action with get_cond_abstr(abstraction_level)
-
-        Args:
-            abstraction_level (int)
-            action (list)
-
-        Returns:
-            actions list (list)         
-        '''
-        pre,act,post = action
-        intervalsPre = self.get_cond_abstr(pre, abstraction_level)
-        intervalsPost = self.get_cond_abstr(post, abstraction_level)
-        return [np.array(intervalsPre),act,np.array(intervalsPost)]
-
-    def get_cond_deabstr(self, cond):
-        '''
-        Transforms a list of Interval istances into a list of corresponding floats
-
-        Args:
-            cond (list of Intervals)
-
-        Returns:
-            cond (list of floats)         
-        '''
-        cond1 = cond.copy()
-        for i in range(len(cond)):     
-            cond1[i] = cond1[i].a + (cond1[i].b - cond1[i].a)/2
-        return cond1
+            distances (numpy.ndarray): where the i-th cell of the vector represents the input abstraction on the i-th variable         
+        '''    
+        return np.array([self.lists_significative_differences[i][abstraction_level] for i in range(len(self.lists_significative_differences))])
 
     def get_dist(self, cond1, cond2):
         '''
         Calculate the amount of abstractions that distances the two input conditions
 
         Args:
-            cond1 (list of Intervals)
-            cond2 (list of Intervals)
+            cond1 (list of float)
+            cond2 (list of float)
 
         Returns:
             distance (int)         
-        '''
-        cond1 = self.get_cond_deabstr(cond1)
-        cond2 = self.get_cond_deabstr(cond2)
-        
-        if str(cond1)+str(cond2) in self.dictionary_distance_actions:
-            return self.dictionary_distance_actions[str(cond1)+str(cond2)]
-
-        if str(cond2)+str(cond1) in self.dictionary_distance_actions:
-            return self.dictionary_distance_actions[str(cond2)+str(cond1)]        
-
-        dist = 0
-        for i in range(len(self.actions[0][0])):
-            for k in range(len(self.lists_significative_differences[i])):
-                arr0 = self.get_cond_abstr(cond1,k)
-                arr1 = self.get_cond_abstr(cond2,0)
-                if arr0[i] == arr1[i]:
-                    dist += k
-                    break
-                elif k == len(self.lists_significative_differences[i])-1:
-                    dist += len(self.lists_significative_differences[i])
-
-        self.dictionary_distance_actions[str(cond1)+str(cond2)] = dist
-        return self.dictionary_distance_actions[str(cond1)+str(cond2)]    
-
-class Interval():
-    '''
-    This class represents a numeric range
-
-    Args:
-        a (float): minimum value
-        b (float): maximum value
-
-    Attributes:
-        a (float): where minimum value is saved
-        b (float): where maximum value is saved
-    '''
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-
-    def __eq__(self, interval):
-        if not isinstance(interval,Interval):
-            print("Abstractor: input is not Interval instance")
-            return None
-        
-        if (self.a <= interval.a and interval.a <= self.b) or (self.a <= interval.b and interval.b <= self.b) or (interval.a <= self.a and self.a <= interval.b) or (interval.a <= self.b and self.b <= interval.b):
-            return True
-        return False
-
-    def __ne__(self, interval): 
-        return not interval == self 
-  
-    def __str__(self): 
-        return "[{},{}]".format(self.a,self.b)  
-
+        '''      
+        return np.sum(abs(cond1-cond2))   
 

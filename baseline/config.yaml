@@ -1,6 +1,8 @@
 abstraction:
   precision: 8
   type: pos_noq
+  total_abstraction: 200
+  percentage_of_actions_ignored_at_the_extremes: 0.05
 planner:
   replan: true
   try_random: false
@@ -17,9 +19,9 @@ simulation:
   objects: 1
   ref_score: noplan50rnd.npy
   run_extrinsic: true
-  run_intrinsic: false
+  run_intrinsic: true
   save_images: false
   save_masks: false
   save_pngs: false
   save_steps: false
-  use_experience_data: true
+  use_experience_data: false
