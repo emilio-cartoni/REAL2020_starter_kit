@@ -4,13 +4,13 @@ import real_robots
 from my_controller import SubmittedPolicy
 import os
 
-DATASET_PATH=os.getenv("AICROWD_DATASET_PATH", "./data/goals-s2021-0-0-0-0-0-0-0-50-3.npy.npz")
+DATASET_PATH=os.getenv("AICROWD_DATASET_PATH", "./data/goals-REAL2020-s2-50-1.npy.npz")
 
 result, detailed_scores = real_robots.evaluate(
                 SubmittedPolicy,
-                intrinsic_timesteps=40,
-                extrinsic_timesteps=40,
-                extrinsic_trials=5,
+                intrinsic_timesteps=100000,
+                extrinsic_timesteps=10000,
+                extrinsic_trials=50,
                 visualize=False,
                 goals_dataset_path=DATASET_PATH
             )
