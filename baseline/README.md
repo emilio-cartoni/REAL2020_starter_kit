@@ -15,7 +15,8 @@ In this version of the baseline we have made several simplifications to the prob
 
 
 ## Vocabulary
-Action = a triple (precondition, trajectory, postcondition) 
+Action = a triple (precondition, trajectory, postcondition)
+
 World state = position (x, y) of the cube
 
 ## Approach to the problem
@@ -26,7 +27,7 @@ The problem was addressed with several components: Policy, Explorer, Abstractor 
 ### Policy component
 The Policy component represents the agent and defines its behavior depending on the phase in which it is located. In the intrinsic phase it will deal with exploring (using explorer) the space of actions in order to collect as many actions as possible. In the extrinsic phase he will deal with using the collected actions to generate sequences (using planner and abstractor) of actions that lead to the desired state.
 
-![Policy flow](https://drive.google.com/open?id=1UZzdedUd-qrKDXsVqneVtB-OcuigJj5g)
+![Policy flow](https://drive.google.com/open?id=1q5lt7mobwURmoOX671UKygyGQIpVMZvS)
 
 ### Explorer component
 The Explorer component deals with the exploration of the two-dimensional space above the table. To do this it generates two points in the two-dimensional space [(x1, y1), (x2, y2)] which then the Policy component uses to create a trajectory on the table. Before making the movement corresponding to the trajectory, the agent saves the current state of the world so that the triple (precondition, trajectory, postcondition) can be saved later, where postcondition is the state of the world after performing the action . This exploration phase corresponds to the intrinsic phase, where the agent limits himself to collecting actions to perform at his best in the extrinsic phase.
