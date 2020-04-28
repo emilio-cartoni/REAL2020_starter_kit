@@ -60,11 +60,11 @@ class DoAction(State):
         if self.actionTimer < self.n_timesteps:
             return self, self.action, False
         else:
-            nextState = GoBackHome()
+            nextState = EndAction()
             return nextState.step(observation, reward, done)
 
 
-class GoBackHome(State):
+class EndAction(State):
     '''
     This class represents the state in which the agent moves the robotic arm to the starting position
 
@@ -76,11 +76,6 @@ class GoBackHome(State):
         timeout (int): duration of action
         photoDone (bool): where the arrival to the starting position is saved
     '''
-    def __init__(self):
-        self.home = np.zeros(9)
-        self.actionTimer = -1
-        self.timeout = 400
-        self.photoDone = False
 
     def step(self, observation, reward, done):
         '''
@@ -95,38 +90,22 @@ class GoBackHome(State):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position             
         '''
-        self.actionTimer += 1
+        post_image = observation['retina'] if config.sim['save_images'] else None
+        post_pos = observation['object_positions']
+        post_mask = observation['mask'] if config.sim['save_masks'] else None
+        post = (post_image, post_pos, post_mask)
+        self.actionData += [post]
+        self.caller.storeAction(self.actionData)
 
-        if self.photoDone:
-            post_image = observation['retina'] if config.sim['save_images'] else None
-            post_pos = observation['object_positions']
-            post_mask = observation['mask'] if config.sim['save_masks'] else None
-            post = (post_image, post_pos, post_mask)
-            self.actionData += [post]
-            self.caller.storeAction(self.actionData)
-
-            pre_exp = currentAbstraction(self.actionData[0])
-            action = np.vstack(self.actionData[1])
-            post_exp = currentAbstraction(post)
+        pre_exp = currentAbstraction(self.actionData[0])
+        action = np.vstack(self.actionData[1])
+        post_exp = currentAbstraction(post)
 
 
-            State.actionData = []
+        State.actionData = []
 
-            nextState = ActionStart()
-            return nextState.step(observation, reward, done)
-
-        if (np.linalg.norm(observation['joint_positions'] - self.home) < 0.001):
-            print("I have reached home, ending the current action..")
-            self.photoDone = True
-            return self, self.home, True
-        else:
-            if (self.actionTimer <= self.timeout):
-                action = self.home
-                return self, action, False
-            else:
-                print("I am stuck! Let's try to unstuck for a while...")
-                nextState = StuckState(observation['joint_positions'])
-                return nextState.step(observation, reward, done)
+        nextState = ActionStart()
+        return nextState.step(observation, reward, done)
 
       
 
@@ -277,8 +256,6 @@ class WaitForNewGoal():
         pre_abs, goal_abs = self.getCurrentStateAndGoal(observation)
         self.current_goal = goal_abs
         self.current_state = pre_abs
-        self.min_wait = np.random.randint(100,500)
-        self.waited = 0
 
     def step(self, observation, reward, done):
         '''
@@ -293,11 +270,6 @@ class WaitForNewGoal():
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t           
         '''
-        self.waited += 1
-
-        if self.waited < self.min_wait:
-            return self, np.zeros(9), False
-
         pre_abs, goal_abs = self.getCurrentStateAndGoal(observation)
 
         sameGoal = np.all(goal_abs == self.current_goal)
@@ -305,7 +277,7 @@ class WaitForNewGoal():
 
         if sameGoal:
             if sameState:
-                return self, np.zeros(9), False
+                return self, None, False
             else:
                 print("Situation has changed!")
                 print("OLD:", self.current_state)
