@@ -4,7 +4,7 @@
 Before describing the system, let's describe the context in which it operates:
 There is an Agent-Environment context in which the agent has control of a robotic arm and the environment includes a table and a cube, in addition to the robotic arm. The agent must learn to use the robotic arm in such a way as to be able to move the cube at any point on the table without any prior knowledge. The agent will therefore have to collect different skills and, on request, be able to use them to move the object from one position to another.
 
-[google drive video link showing the agente in action](https://drive.google.com/open?id=1nGakVEqah2HHN6r7qADCoprA0Rf9RcVu)
+[google drive video link showing the agente in action](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/extrinsic_phase_video.mp4)
 
 ## Simplifications problem
 In this version of the baseline we have made several simplifications to the problem:
@@ -22,12 +22,12 @@ World state = position (x, y) of the cube
 ## Approach to the problem
 The problem was addressed with several components: Policy, Explorer, Abstractor and Planner. We will expose the system with a top-down approach, then we will first see the Policy component and lastly the Plan.
 
-![Architecture](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/architettura.svg)
+![Architecture](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/architecture.svg)
 
 ### Policy component
 The Policy component represents the agent and defines its behavior depending on the phase in which it is located. In the intrinsic phase it will deal with exploring (using explorer) the space of actions in order to collect as many actions as possible. In the extrinsic phase he will deal with using the collected actions to generate sequences (using planner and abstractor) of actions that lead to the desired state.
 
-![Policy flow](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/classe_discrete_action_collectors_etichette1.svg)
+![Policy flow](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/class_policy.svg)
 
 ### Explorer component
 The Explorer component deals with the exploration of the two-dimensional space above the table. To do this it generates two points in the two-dimensional space [(x1, y1), (x2, y2)] which then the Policy component uses to create a trajectory on the table. Before making the movement corresponding to the trajectory, the agent saves the current state of the world so that the triple (precondition, trajectory, postcondition) can be saved later, where postcondition is the state of the world after performing the action . This exploration phase corresponds to the intrinsic phase, where the agent limits himself to collecting actions to perform at his best in the extrinsic phase.
