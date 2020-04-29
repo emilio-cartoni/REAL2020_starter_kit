@@ -85,7 +85,7 @@ class DynamicAbstractor():
         
         for i in range(condition_dimension): 
             sup = ordered_differences_queues[i].get_queue_values()
-            for j in np.linspace(actions_to_remove,len(actions)-actions_to_remove, config.abst['total_abstraction']).round(0):
+            for j in np.linspace(actions_to_remove,len(actions)-1-actions_to_remove, config.abst['total_abstraction']).round(0):
                 self.lists_significative_differences[i] += [sup[int(j)]]
             
 
