@@ -127,7 +127,7 @@ class ProposeNewAction(State):
         self.point_1 = action[0]
         self.point_2 = action[1]
 
-        print("Will go to {},{}".format(self.point_1, self.point_2))
+        #print("Will go to {},{}".format(self.point_1, self.point_2))
 
     def step(self, observation, reward, done):
         '''
@@ -176,14 +176,14 @@ class ActionStart(State):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t      
         '''
-        print("Now I will start another action..")
+        #print("Now I will start another action..")
         goal = observation['goal']
         if np.any(goal):
-            print("... by planning for the goal.")
+            #print("... by planning for the goal.")
             nextState = PlanAction()
             return nextState.step(observation, reward, done)
         else:
-            print("... without a goal.")
+            #print("... without a goal.")
             nextState = ProposeNewAction()
             return nextState.step(observation, reward, done)
 
@@ -230,11 +230,11 @@ class PlanAction(State):
             return nextState.step(observation, reward, done)
         else:
             if config.plan['try_random']:
-                print("Planning returned nothing, I will try something random...")
+                #print("Planning returned nothing, I will try something random...")
                 nextState = ProposeNewAction()
                 return nextState.step(observation, reward, done)
             else:
-                print("Planning returned nothing, I will wait for next goal...")
+                #print("Planning returned nothing, I will wait for next goal...")
                 nextState = WaitForNewGoal(observation)
                 return nextState.step(observation, reward, done)           
 
@@ -279,11 +279,11 @@ class WaitForNewGoal():
             if sameState:
                 return self, None, False
             else:
-                print("Situation has changed!")
-                print("OLD:", self.current_state)
-                print("NEW:", pre_abs)
+                #print("Situation has changed!")
+                pass
         else:
-            print("New goal has arrived!")
+            #print("New goal has arrived!")
+            pass
 
         nextState = ActionStart()
         return nextState.step(observation, reward, done)
@@ -346,7 +346,7 @@ class Baseline(BasePolicy):
         
         '''
         self.allActions += [actionData]
-        print("Stored action!")
+        #print("Stored action!")
 
     def save(self, fileName):
         '''
@@ -374,7 +374,7 @@ class Baseline(BasePolicy):
         '''
         self.state, action, render = self.state.step(observation, reward, done)
 
-#        print("DEBUG", action, render)
+        #print("DEBUG", action, render)
 
         return {'macro_action': action, 'render': render}
 
@@ -394,7 +394,7 @@ class Baseline(BasePolicy):
         no_sequence = len(self.plan_sequence) == 0
 
         if config.plan['replan'] or goalChanged or no_sequence:
-            print("Invoking planner for new sequence..")
+            #print("Invoking planner for new sequence..")
             self.plan_sequence = self.planner.plan(goal_abs, pre_abs, alg=config.plan['type'])
         else:
             self.plan_sequence = self.plan_sequence[1:]
@@ -410,19 +410,19 @@ class Baseline(BasePolicy):
         Returns:
         
         '''
-        print("Loading actions for planner...")
+        #print("Loading actions for planner...")
 
         allActions = self.allActions
-        print("I know {} actions.".format(len(allActions)))
+        #print("I know {} actions.".format(len(allActions)))
 
         if config.sim['use_experience_data']:
             allActions = np.load(config.sim['experience_data'], allow_pickle=True)
-            print("Loaded {} actions.".format(len(allActions)))
+            #print("Loaded {} actions.".format(len(allActions)))
 
         allAbstractedActions = [[currentAbstraction(a[0]), a[1], currentAbstraction(a[2])] for a in allActions]
 
-        print("Initializing planner...")
+        #print("Initializing planner...")
         self.planner = Planner(allAbstractedActions)
         del allActions
         del allAbstractedActions
-        print("Planner initalized.")
+        #print("Planner initalized.")
