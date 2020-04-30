@@ -38,3 +38,23 @@ The Abstractor component takes the actions collected in the intrinsic phase and 
 
 ### Planner component
 The Planner component has an instance of the abstraction tool available which will allow it to access the distance associated with each level of abstraction. The planner uses the abstractor to make ever more abstract plans until he finds a plane, where "more and more abstract" means more collapse between states. Before moving on to planning, you prepare the actions in the following way: calculate the distance between each precondition and postcondition and if this is smaller than the distance associated with the current abstraction, then the action in question is ignored. The abstraction is done incrementally from the bottom up until a plane is found. This will ensure that you prefer plans with lower abstraction.
+
+## Config file
+The agent's behavior also depends on hyperparameters specified in the config.yaml file. These parameters are divided into 3 different categories: abstraction, planner and simulation. Below we explain their semantics:
+ - Abstraction:
+   - precision: allows to truncate the numbers contained in the vector representing the state of the world to the i-th digit after the comma.
+   - type: with the possible values ​​[pos, pos_noq] allows you to specify if you want to use the position of the cube with or without quaternion
+   - total_abstraction: allows you to specify how many equally distributed samples you want to take in the set of differences experienced between precondition and postcondition
+   - percentage_of_actions_ignored_at_the_extremes: allows you to specify the percentage that you want to ignore at the extremes of the actions (sorted). This variable was made in such a way as to be able to eliminate the most unlikely actions to be performed.
+ - Planner:
+   - replan: allows you to specify if you want the agent to replan after each action performed
+   - try_random: allows you to specify if you want the agent to do random actions if he does not find a plan
+   - type: with the possible values ​​[mega, noplan] it allows to specify if you want to plan, or not
+   - action_size: allows you to specify the length of the actions that the planner takes into consideration in order to give an upper limit to the sequence of actions to be planned
+ - Simulation:
+   - experience_data: allows you to specify the file to be used to face the extrinsic phase
+   - extrinsic_steps: allows you to specify the number of steps dedicated to each goal with the same “action_size” aim 
+   - save_images: allows you to specify if you want the triple of the actions to contain in preconditions and postconditions the image of the state of the world rather than just the coordinates of the cube.
+   - save_masks: same meaning as the previous one but in this case you specify if you want a matrix as large as that of the images but with the object contained in the cell in question specified.
+   - use_experience_data: allows you to specify if you want to use the file specified in "experience_data", or (if false) if you want to use the actions collected in the intrinsic phase just carried out
+
