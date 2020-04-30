@@ -7,9 +7,10 @@ planner:
   replan: true
   try_random: false
   type: mega
+  action_size: 1200
 simulation:
   experience_data: baseline/transitions_DiscreteActionsCollector_12500000_1_472222_xy_push.npy
   extrinsic_steps: 10000
   save_images: false
   save_masks: false
-  use_experience_data: true
+  use_experience_data: false

@@ -51,7 +51,7 @@ class Planner():
             if not np.all(self.last_goal == goal):
                 self.last_goal = goal
                 self.stop_plan = False
-                self.plan_size = int(np.floor(config.sim['extrinsic_steps']/1200))
+                self.plan_size = int(np.floor(config.sim['extrinsic_steps']/config.plan['action_size']))
             else:
                 self.plan_size -= 1
 
