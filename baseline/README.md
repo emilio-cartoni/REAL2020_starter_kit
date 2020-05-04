@@ -7,12 +7,6 @@ There is an Agent-Environment context in which the agent has control of a roboti
 
 ![Extrinsic phase](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/extrinsic_phase_little_video.gif)
 
-## Simplifications problem
-Two of the simplifications made available in Round 1 of the competition are used in this version of the baseline. The simplifications used are the following:
-
- 1. At each step it is possible to have the current position (x, y) of the object.
- 2. A special action is available which, given two points in two-dimensional space (x1, y1) and (x2, y2), generates a trajectory on the table that starts from (x1, y1) and ends in (x2, y2). This actions are showed in previous video.
-
 ## Approach to the problem
 The problem was addressed with several components: Policy, Explorer, Abstractor and Planner. We will expose the system with a top-down approach, then we will first see the Policy component and lastly the Plan.
 
@@ -20,8 +14,11 @@ The problem was addressed with several components: Policy, Explorer, Abstractor 
 
 ### Policy component
 The Policy component represents the agent and defines its behavior depending on the phase in which it is located. In the intrinsic phase it will deal with exploring (using explorer) the space of actions [1] in order to collect as many actions as possible. In the extrinsic phase he will deal with using the collected actions to generate sequences (using planner and abstractor) of actions that lead to the desired state [2].
+
 [1]: with action is meant a triple (precondition, trajectory, postcondition)
+
 [2]: with state is meant a cube (x,y) position
+
 ![Policy flow](https://github.com/emilio-cartoni/REAL2020_starter_kit/blob/master/baseline/media/class_policy.svg)
 
 ### Explorer component
