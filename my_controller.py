@@ -3,7 +3,7 @@ import numpy as np
 import time
 import real_robots
 from real_robots.policy import BasePolicy
-from baseline.baseline import Baseline
+from baseline.policy import Baseline
 
 class RandomPolicy(BasePolicy):
     def __init__(self, action_space):

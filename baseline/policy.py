@@ -71,16 +71,11 @@ class EndAction(State):
     Args:
         
     Attributes:
-        home (numpy.ndarray): vector representing the starting position of the joints (all joints at zero degree)
-        actionTimer (int): steps taken of the action
-        timeout (int): duration of action
-        photoDone (bool): where the arrival to the starting position is saved
     '''
 
     def step(self, observation, reward, done):
         '''
-        Returns the starting position as an action until it reaches it. If it fails within the established time, it passes into the StuckState state,
-        otherwise when the starting position is reached, it passes into the ActionStart state.
+        It save the current action and it passes into the ActionStart state.
 
         Args:
             observation (dict): dictionary of all the observations given by the environment 
@@ -240,7 +235,7 @@ class PlanAction(State):
 
 class WaitForNewGoal():
     '''
-    This class allows you to gradually release the description of the states contained in the actions.
+    This class represent the state where the agent wait to have a new goal.
 
     Args:
         observation (dict): dictionary of all the observations given by the environment 
@@ -248,8 +243,6 @@ class WaitForNewGoal():
     Attributes:
         current_goal (numpy.ndarray): where the current goal is saved
         current_state (numpy.ndarray): where the current state of the world is saved
-        min_wait (int): minimum waiting time before checking if there is a new goal 
-        waited (int): counter of the expected time
         
     '''
     def __init__(self, observation):
@@ -259,8 +252,8 @@ class WaitForNewGoal():
 
     def step(self, observation, reward, done):
         '''
-        After waiting for the minimum time, it is checked whether the goal contained in the observations is different from that contained in the instantiation time,
-        then switches to the ActionStart state
+        It is checked whether the goal contained in the observations is different from that contained in the instantiation time.
+        If it is, then switches to the ActionStart state
 
         Args:
             observation (dict): dictionary of all the observations given by the environment 
