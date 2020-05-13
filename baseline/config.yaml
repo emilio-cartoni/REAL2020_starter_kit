@@ -1,6 +1,6 @@
 abstraction:
   precision: 8
-  type: pos_noq
+  type: mask
   total_abstraction: 200
   percentage_of_actions_ignored_at_the_extremes: 0.05
 planner:
@@ -9,8 +9,8 @@ planner:
   type: mega
   action_size: 1200
 simulation:
-  experience_data: baseline/transitions_DiscreteActionsCollector_12500000_1_472222_xy_push.npy
+  experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/baseline/5407.npy
   extrinsic_steps: 10000
   save_images: false
   save_masks: true
-  use_experience_data: false
+  use_experience_data: true

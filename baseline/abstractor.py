@@ -1,3 +1,12 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from tensorflow.keras.layers import Lambda, Input, Dense
+from tensorflow.keras.models import Model
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.losses import mse, binary_crossentropy
+from tensorflow.keras.utils import plot_model
+from tensorflow.keras import backend as K
 import numpy as np
 import baseline.config as config
 import baseline.priorityQueue as pq
@@ -16,6 +25,8 @@ def currentAbstraction(obs):
         return abstractionFromPos(obs[1])
     if config.abst['type'] == 'pos_noq':
         return abstractionFromPosNoQ(obs[1])
+    elif config.abst['type'] == 'mask':
+        return obs[2]
 
 def abstractionFromPos(pos_dict):
     '''
@@ -46,6 +57,118 @@ def abstractionFromPosNoQ(pos_dict):
     return abst
 
 
+
+
+class Abstractor():
+    def __init__(self, masks):
+        # reparameterization trick
+        # instead of sampling from Q(z|X), sample epsilon = N(0,I)
+        # z = z_mean + sqrt(var) * epsilon
+        def sampling(args):
+            """Reparameterization trick by sampling from an isotropic unit Gaussian.
+
+            # Arguments
+                args (tensor): mean and log of variance of Q(z|X)
+
+            # Returns
+                z (tensor): sampled latent vector
+            """
+
+            z_mean, z_log_var = args
+            batch = K.shape(z_mean)[0]
+            dim = K.int_shape(z_mean)[1]
+            # by default, random_normal has mean = 0 and std = 1.0
+            epsilon = K.random_normal(shape=(batch, dim))
+            return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+        fl = masks
+            
+
+        x_train = fl[:int(np.floor(len(fl)*0.80))]
+        x_test = fl[int(np.ceil(len(fl)*0.80)):]
+        image_rows = x_train[0].shape[0] 
+        image_columns = x_train[0].shape[1] 
+        original_dim = image_rows * image_columns 
+        x_train = np.reshape(x_train, [-1, original_dim]) 
+        x_test = np.reshape(x_test, [-1, original_dim]) 
+
+        input_shape = (original_dim, ) 
+        intermediate_dim = 512 
+        batch_size = 128 
+        latent_dim = 3
+        epochs = 40 
+
+        # VAE model = encoder + decoder
+        # build encoder model
+        inputs = Input(shape=input_shape, name='encoder_input')
+        x = Dense(intermediate_dim, activation='relu')(inputs)
+        z_mean = Dense(latent_dim, name='z_mean')(x)
+        z_log_var = Dense(latent_dim, name='z_log_var')(x)
+
+        # use reparameterization trick to push the sampling out as input
+        # note that "output_shape" isn't necessary with the TensorFlow backend
+        z = Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
+
+        # instantiate encoder model
+        self.encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+        self.encoder.summary()
+        #plot_model(encoder, to_file='vae_mlp_encoder.png', show_shapes=True)
+
+        # build decoder model
+        latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
+        x = Dense(intermediate_dim, activation='relu')(latent_inputs)
+        outputs = Dense(original_dim, activation='sigmoid')(x)
+
+        # instantiate decoder model
+        self.decoder = Model(latent_inputs, outputs, name='decoder')
+        self.decoder.summary()
+
+        # instantiate VAE model
+        outputs = self.decoder(self.encoder(inputs)[2])
+        vae = Model(inputs, outputs, name='vae_mlp')
+
+        models = (self.encoder, self.decoder)
+
+        # VAE loss = mse_loss or xent_loss + kl_loss
+        if False:
+            reconstruction_loss = mse(inputs, outputs)
+        else:
+            reconstruction_loss = binary_crossentropy(inputs,
+                                                      outputs)
+
+        reconstruction_loss *= original_dim
+        kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
+        kl_loss = K.sum(kl_loss, axis=-1)
+        kl_loss *= -0.5
+        vae_loss = K.mean(reconstruction_loss + kl_loss)
+        vae.add_loss(vae_loss)
+        vae.compile(optimizer='adam')
+        vae.summary()
+        plot_model(vae,
+                   to_file='vae_mlp.png',
+                   show_shapes=True)
+
+
+        # train the autoencoder
+        vae.fit(x_train,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_data=(x_test, None))
+
+    def get_encoder(self):
+        return self.encoder
+
+    def get_decoder(self):
+        return self.decoder
+
+    def get_abstraction_from_binary_image(self, image):
+        return self.encoder.predict(np.reshape(image,[-1,len(image)*len(image[0])]))
+
+    def get_abstraction_from_mask(self, mask):
+        #here implement preprocessing 
+        return self.encoder.predict(np.reshape(mask,[-1,len(mask)*len(mask[0])]))
+    
+
 class DynamicAbstractor():
     '''
     This class allows you to gradually release the description of the states contained in the actions.
@@ -67,25 +190,37 @@ class DynamicAbstractor():
             print("Each conditions have to be numpy.ndarray")
             return None         
         
-        self.actions = actions
+        
+
+        masks = [np.array([raw == 2 for raw in action[0]]) for action in actions]
+        ab = Abstractor(masks)
+        self.encoder = ab.get_encoder()
+
+        self.actions = []
+        for a in actions:                                              
+            self.actions += [np.array([np.array(ab.get_encoder().predict(np.reshape(a[0],[-1,len(a[0])*len(a[0][0])]))[0][0]),a[1],np.array(ab.get_encoder().predict(np.reshape(a[2],[-1,len(a[0])*len(a[0][0])]))[0][0])])]
+
+
+        print(self.actions[0])
+
         self.dictionary_abstract_actions = {}
 
         #For each variable in actions condition it add a list to put the significative differences 
-        condition_dimension = len(actions[0][0])
+        condition_dimension = len(self.actions[0][0])
         self.lists_significative_differences = [[] for i in range(condition_dimension)]
 
         ordered_differences_queues = [pq.PriorityQueue() for i in range(condition_dimension)]   
 
         differences = abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))
         for i in range(condition_dimension): 
-            for j in range(len(actions)): 
+            for j in range(len(self.actions)): 
                 ordered_differences_queues[i].enqueue(None, differences[j][i])         
 
-        actions_to_remove = int(np.floor(len(actions)*config.abst['percentage_of_actions_ignored_at_the_extremes']))
+        actions_to_remove = int(np.floor(len(self.actions)*config.abst['percentage_of_actions_ignored_at_the_extremes']))
         
         for i in range(condition_dimension): 
             sup = ordered_differences_queues[i].get_queue_values()
-            for j in np.linspace(actions_to_remove,len(actions)-1-actions_to_remove, config.abst['total_abstraction']).round(0):
+            for j in np.linspace(actions_to_remove,len(self.actions)-1-actions_to_remove, config.abst['total_abstraction']).round(0):
                 self.lists_significative_differences[i] += [sup[int(j)]]
             
 
@@ -112,5 +247,8 @@ class DynamicAbstractor():
         Returns:
             distance (int)         
         '''      
-        return np.sum(abs(cond1-cond2))   
+        return np.sum(abs(cond1-cond2))  
+
+    def get_encoder(self):
+        return self.encoder 
 

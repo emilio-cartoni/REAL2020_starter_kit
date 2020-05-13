@@ -24,8 +24,8 @@ class Planner():
                                                         to the postcondition due to the abstraction
     '''
     def __init__(self, actions = None):
-        self.actions = actions
-        self.abstractor = abstr.DynamicAbstractor(self.actions)
+        self.abstractor = abstr.DynamicAbstractor(actions)
+        self.actions = self.abstractor.actions
 
         #data structures used to optimize
         self.last_goal = np.array([])
@@ -63,6 +63,9 @@ class Planner():
             self.visited = {}
             self.q_stopped = {}
 
+
+            abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])]))[0][0]
+            abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])]))[0][0] 
             plan = []
             for lev_depth in range(1,self.plan_size+1):
                 print("Depth level: {}".format(lev_depth))
@@ -72,10 +75,10 @@ class Planner():
                     
                     if not abstraction_level in self.pre_post_different_for_abstractions:
                         self.pre_post_different_for_abstractions[abstraction_level] = np.where(np.sum(
-                                                                                        abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))
-                                                                                            > self.abstractor.get_abstraction(abstraction_level),axis=1))[0]
-                        
-                    plan = self.forward_planning_with_prior_abstraction(goal, start, abstraction_level, lev_depth)
+                                                                                        np.array(list(abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))))
+                                                                                                > self.abstractor.get_abstraction(abstraction_level),axis=1))[0]
+                                         
+                    plan = self.forward_planning_with_prior_abstraction(abstr_goal, abstr_start, abstraction_level, lev_depth)
                     
                     if plan:
                         return plan
@@ -119,7 +122,8 @@ class Planner():
 
         if depth == 1:
             frontier = set()
-            post_goal_equals_for_abstractions = np.where(np.all(abs(np.take(self.actions,2,axis=1)-goal_image) <= abstraction_dists,axis=1))[0]
+            post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,2,axis=1))) - goal_image)
+                                                                             <= abstraction_dists,axis=1))[0]
             s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
             s2 = set(post_goal_equals_for_abstractions)
             #I take actions with a precondition other than postcondition in current abstraction
@@ -127,7 +131,10 @@ class Planner():
             
             if list(s):
                 #I take actions with precondition equal to the current condition in current abstraction
-                pre_current_equals_for_abstractions = np.where(np.all(abs(np.take(self.actions,0,axis=1)-current) <= abstraction_dists,axis=1))[0]   
+                pre_current_equals_for_abstractions = np.where(
+                        np.all( np.array(
+                                list( abs(np.take(self.actions,0,axis=1)-current))) <= abstraction_dists
+                                    ,axis=1))[0]   
                 s2 = set(pre_current_equals_for_abstractions)
                 #I take actions with a precondition other than postcondition in current abstraction
                 s = s2.intersection(s1)
@@ -178,7 +185,7 @@ class Planner():
                 actions_list = self.actions_dicts[(node.get_attribute(),lev_abstr)]
             else:
                 self.actions_dicts[(node.get_attribute(),lev_abstr)] = []
-                pre_post_equals_for_abstractions = np.where(np.all(abs(np.take(self.actions,0,axis=1)-post) <= abstraction_dists,axis=1))[0]
+                pre_post_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,0,axis=1)))-post) <= abstraction_dists,axis=1))[0]
                 s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
                 s2 = set(pre_post_equals_for_abstractions)
                 s = s2.intersection(s1)

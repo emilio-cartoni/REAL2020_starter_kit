@@ -405,6 +405,8 @@ class Baseline(BasePolicy):
         '''
         #print("Loading actions for planner...")
 
+        self.save("./{}".format(np.random.randint(0,10000)))  
+
         allActions = self.allActions
         #print("I know {} actions.".format(len(allActions)))
 
