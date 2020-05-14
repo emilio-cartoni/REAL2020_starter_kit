@@ -58,7 +58,7 @@ class DoAction(State):
         '''
         self.actionTimer += 1
         if self.actionTimer < self.n_timesteps:
-            return self, self.action, False
+            return self, self.action, self.actionTimer == (self.n_timesteps - 1)
         else:
             nextState = EndAction()
             return nextState.step(observation, reward, done)
