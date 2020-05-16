@@ -58,7 +58,7 @@ class DoAction(State):
         '''
         self.actionTimer += 1
         if self.actionTimer < self.n_timesteps:
-            return self, self.action, False
+            return self, self.action, self.actionTimer == (self.n_timesteps - 1)
         else:
             nextState = EndAction()
             return nextState.step(observation, reward, done)
@@ -327,6 +327,7 @@ class Baseline(BasePolicy):
         self.axes = axes
         self.action_space = Box(low=np.array([[-0.5, -0.5],[-0.5, -0.5]]), high=np.array([[-0.1, 0.5],[-0.1, 0.5]]), dtype=np.float32)
         self.explorer = exp.RandomExploreAgent(self.action_space)
+        self.first_step = True
 
     def storeAction(self, actionData):
         '''
@@ -368,6 +369,8 @@ class Baseline(BasePolicy):
         self.state, action, render = self.state.step(observation, reward, done)
 
         #print("DEBUG", action, render)
+
+
 
         return {'macro_action': action, 'render': render}
 

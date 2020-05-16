@@ -52,6 +52,7 @@ class Planner():
                 self.last_goal = goal
                 self.stop_plan = False
                 self.plan_size = int(np.floor(config.sim['extrinsic_steps']/config.plan['action_size']))
+                self.first_depth = True
             else:
                 self.plan_size -= 1
 
@@ -64,10 +65,15 @@ class Planner():
             self.q_stopped = {}
 
 
-            abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])]))[0][0]
-            abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])]))[0][0] 
+            if config.abst['type'] == 'mask':
+                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])]))[0][0]
+                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])]))[0][0] 
+            else:
+                abstr_goal = goal
+                abstr_start =  start            
+
             plan = []
-            for lev_depth in range(1,self.plan_size+1):
+            for lev_depth in range(self.plan_size,self.plan_size+1):
                 print("Depth level: {}".format(lev_depth))
       
                 for abstraction_level in range(config.abst['total_abstraction']):
@@ -82,6 +88,8 @@ class Planner():
                     
                     if plan:
                         return plan
+
+                self.first_depth = False
 
             if not plan:
                 self.stop_plan = True
@@ -120,21 +128,18 @@ class Planner():
         q = pqClass.PriorityQueue()
         q_stopped = pqClass.PriorityQueue()
 
-        if depth == 1:
+        if self.first_depth:
             frontier = set()
-            post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,2,axis=1))) - goal_image)
-                                                                             <= abstraction_dists,axis=1))[0]
+            post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,2,axis=1))) - goal_image) <= abstraction_dists,axis=1))[0]
             s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
             s2 = set(post_goal_equals_for_abstractions)
             #I take actions with a precondition other than postcondition in current abstraction
             s = s1.intersection(s2)
             
             if list(s):
-                #I take actions with precondition equal to the current condition in current abstraction
-                pre_current_equals_for_abstractions = np.where(
-                        np.all( np.array(
-                                list( abs(np.take(self.actions,0,axis=1)-current))) <= abstraction_dists
-                                    ,axis=1))[0]   
+                #I take actions with precondition equal to the current condition in current abstraction 
+                                                       
+                pre_current_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,0,axis=1))) - current) <= abstraction_dists,axis=1))[0]   
                 s2 = set(pre_current_equals_for_abstractions)
                 #I take actions with a precondition other than postcondition in current abstraction
                 s = s2.intersection(s1)

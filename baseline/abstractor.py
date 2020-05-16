@@ -96,7 +96,7 @@ class Abstractor():
         intermediate_dim = 512 
         batch_size = 128 
         latent_dim = 3
-        epochs = 40 
+        epochs = 50
 
         # VAE model = encoder + decoder
         # build encoder model
@@ -191,17 +191,27 @@ class DynamicAbstractor():
             return None         
         
         
+        if config.abst['type'] == 'mask':
+            masks = [np.array([raw == 2 for raw in action[2]]) for action in actions]
+            ab = Abstractor(masks)
+            self.encoder = ab.get_encoder()
 
-        masks = [np.array([raw == 2 for raw in action[0]]) for action in actions]
-        ab = Abstractor(masks)
-        self.encoder = ab.get_encoder()
+            self.actions = []
+            n_cells = len(actions[0][0])*len(actions[0][0][0])
+            z = 0
+            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
+            for a in actions:
+                if z % 100 == 0:         
+                    print("{}-esima azione tradotta".format(z))
+                z += 1                                
+                pre = post
+                post = np.array(self.encoder.predict(np.reshape(a[2],[-1,n_cells]))[0][0])
+                self.actions += [np.array([pre,a[1],post])]
 
-        self.actions = []
-        for a in actions:                                              
-            self.actions += [np.array([np.array(ab.get_encoder().predict(np.reshape(a[0],[-1,len(a[0])*len(a[0][0])]))[0][0]),a[1],np.array(ab.get_encoder().predict(np.reshape(a[2],[-1,len(a[0])*len(a[0][0])]))[0][0])])]
 
-
-        print(self.actions[0])
+            print(self.actions[0])
+        else:
+            self.actions = actions
 
         self.dictionary_abstract_actions = {}
 
