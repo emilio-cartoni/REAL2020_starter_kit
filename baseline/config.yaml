@@ -7,7 +7,7 @@ planner:
   replan: true
   try_random: false
   type: mega
-  action_size: 1200
+  action_size: 1000
 simulation:
   experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/2474.npy
   extrinsic_steps: 10000
