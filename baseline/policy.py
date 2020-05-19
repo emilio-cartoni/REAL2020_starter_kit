@@ -40,7 +40,7 @@ class DoAction(State):
         raw_actions (list): where the positions of the robotic arm to be reached at each step are saved
     '''
     def __init__(self, action):
-        self.n_timesteps = 1200
+        self.n_timesteps = 1000
         self.actionTimer = -1
         self.action = action
     
