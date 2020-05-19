@@ -68,6 +68,9 @@ class Planner():
             if config.abst['type'] == 'mask':
                 abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])]))[0][0]
                 abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])]))[0][0] 
+            elif config.abst['type'] == 'image':
+                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])*3]))[0][0]
+                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])*3]))[0][0]    
             else:
                 abstr_goal = goal
                 abstr_start =  start            

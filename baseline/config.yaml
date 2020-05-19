@@ -9,8 +9,8 @@ planner:
   type: mega
   action_size: 1200
 simulation:
-  experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/2474.npy
+  experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/2749.npy
   extrinsic_steps: 10000
-  save_images: false
+  save_images: true
   save_masks: true
-  use_experience_data: false
+  use_experience_data: true

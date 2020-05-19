@@ -27,6 +27,8 @@ def currentAbstraction(obs):
         return abstractionFromPosNoQ(obs[1])
     elif config.abst['type'] == 'mask':
         return obs[2]
+    elif config.abst['type'] == 'image':
+        return obs[0]
 
 def abstractionFromPos(pos_dict):
     '''
@@ -91,11 +93,15 @@ class Abstractor():
         original_dim = image_rows * image_columns 
         x_train = np.reshape(x_train, [-1, original_dim]) 
         x_test = np.reshape(x_test, [-1, original_dim]) 
+        
+        if config.abst['type'] == 'image':
+            x_train = x_train.astype('float32') / 255.
+            x_test = x_test.astype('float32') / 255.
 
         input_shape = (original_dim, ) 
         intermediate_dim = 512 
         batch_size = 128 
-        latent_dim = 3
+        latent_dim = 6
         epochs = 50
 
         # VAE model = encoder + decoder
@@ -210,6 +216,28 @@ class DynamicAbstractor():
 
 
             print(self.actions[0])
+
+        elif config.abst['type'] == 'image':
+            images = [actions[i][2] for i in range(0,len(actions),3)]
+            
+            ab = Abstractor(images)
+            self.encoder = ab.get_encoder()
+
+            self.actions = []
+            n_cells = len(actions[0][0])*len(actions[0][0][0])*3
+            z = 0
+            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
+            for a in actions:
+                if z % 100 == 0:         
+                    print("{}-esima azione tradotta".format(z))
+                z += 1                                
+                pre = post
+                post = np.array(self.encoder.predict(np.reshape(a[2],[-1,n_cells]))[0][0])
+                self.actions += [np.array([pre,a[1],post])]
+
+
+            print(self.actions[0])
+
         else:
             self.actions = actions
 
