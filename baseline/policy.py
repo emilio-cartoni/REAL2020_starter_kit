@@ -40,7 +40,7 @@ class DoAction(State):
         raw_actions (list): where the positions of the robotic arm to be reached at each step are saved
     '''
     def __init__(self, action):
-        self.n_timesteps = 1200
+        self.n_timesteps = 1000
         self.actionTimer = -1
         self.action = action
     
@@ -325,7 +325,7 @@ class Baseline(BasePolicy):
         fig, axes = plt.subplots(3,3)
         self.fig = fig
         self.axes = axes
-        self.action_space = Box(low=np.array([[-0.5, -0.5],[-0.5, -0.5]]), high=np.array([[-0.1, 0.5],[-0.1, 0.5]]), dtype=np.float32)
+        self.action_space = action_space['macro_action']
         self.explorer = exp.RandomExploreAgent(self.action_space)
         self.first_step = True
 
