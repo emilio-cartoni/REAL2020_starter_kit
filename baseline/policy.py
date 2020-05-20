@@ -230,7 +230,7 @@ class PlanAction(State):
                 return nextState.step(observation, reward, done)
             else:
                 #print("Planning returned nothing, I will wait for next goal...")
-                nextState = WaitForNewGoal(observation)
+                nextState = WaitForNewGoal(goal_abs)
                 return nextState.step(observation, reward, done)           
 
 class WaitForNewGoal():
@@ -245,10 +245,8 @@ class WaitForNewGoal():
         current_state (numpy.ndarray): where the current state of the world is saved
         
     '''
-    def __init__(self, observation):
-        pre_abs, goal_abs = self.getCurrentStateAndGoal(observation)
+    def __init__(self, goal_abs):
         self.current_goal = goal_abs
-        self.current_state = pre_abs
 
     def step(self, observation, reward, done):
         '''
@@ -263,20 +261,13 @@ class WaitForNewGoal():
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t           
         '''
+
         pre_abs, goal_abs = self.getCurrentStateAndGoal(observation)
 
         sameGoal = np.all(goal_abs == self.current_goal)
-        sameState = np.all(pre_abs == self.current_state)
 
         if sameGoal:
-            if sameState:
-                return self, None, False
-            else:
-                #print("Situation has changed!")
-                pass
-        else:
-            #print("New goal has arrived!")
-            pass
+            return self, None, False
 
         nextState = ActionStart()
         return nextState.step(observation, reward, done)
@@ -394,6 +385,9 @@ class Baseline(BasePolicy):
 
         return self.plan_sequence
 
+    def end_intrinsic_phase(self, observation, reward, done):
+        self.step(observation, reward, done)
+
     def start_extrinsic_phase(self):
         '''
         Instantiate the Planner class with the actions collected in the intrinsic phase, or with the actions saved in the file written in the config file
@@ -419,3 +413,9 @@ class Baseline(BasePolicy):
         del allActions
         del allAbstractedActions
         #print("Planner initalized.")
+
+    def start_extrinsic_trial(self):
+        self.state = ActionStart()
+
+    def end_extrinsic_trial(self, observation, reward, done):
+        self.step(observation, reward, done)
