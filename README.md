@@ -2,11 +2,11 @@
 
 # Robot open-Ended Autonomous Learning Starter Kit
 
-Instructions to make submissions to the [Robot open-Ended Autonomous Learning](https://www.aicrowd.com/challenges/neurips-2019-robot-open-ended-autonomous-learning).
+Instructions to make submissions to the [Robot open-Ended Autonomous Learning 2020](https://www.aicrowd.com/challenges/real-robots-2020) competition.
 
-Participants will have to submit their controllers, with packaging specifications, and the evaluator will automatically build a docker image and execute their controllers in two phases an Intrinsic Phase and an Extrinsic Phase.
-
-In the first round of the competition, the Intrinsic Phase will be skipped.
+Participants will have to submit their controllers, with packaging specifications, and the evaluator will automatically build a docker image and execute their controllers in two phases: an Intrinsic Phase and an Extrinsic Phase.
+The Intrinsic Phase will only be run for the Final Evaluation.
+During Round 1 and Round 2 only the Extrinsic Phase will be run on the evaluator: participants will run the Intrinsic Phase and make their controller learn locally.
 
 ### Dependencies 
 
@@ -18,8 +18,8 @@ In the first round of the competition, the Intrinsic Phase will be skipped.
 * Clone the repository 
 
 ```
-git clone git@github.com:AIcrowd/neurips_goal_real_robots_starter_kit.git
-cd neurips_goal_real_robots_starter_kit
+git clone git@github.com:AIcrowd/REAL2020_starter_kit.git
+cd REAL2020_starter_kit.git
 ```
 
 * Create a conda environment from the provided `environment.yml`
@@ -43,14 +43,12 @@ conda activate real_robots
 
 ### Test Submission Locally
 
-* First lets download a sample `goals.npy.npz` file by doing : 
-```
-wget https://aicrowd-production.s3.eu-central-1.amazonaws.com/misc/REAL-Robots/goals.npy.npz -O data/goals.npy.npz
-```
-* test locally 
+* Test locally by running:
 ```
 python local_evaluation.py
 ```
+You can edit local_evaluation.py to run either the intrinsic or the extrinsic phase (or both) and adjust their duration and other parameters (i.e. number of objects) for testing purposes.
+Regardless of the modification, when the solution will be evaluated, the intrinsic and extrinsic phases will be run for the duration and number of trials defined in the Rules. During Round 1 and Round 2 it is expected that the controller has already learned during a 15M timestep Intrinsic Phase run locally by the participants.
 
 * (optional) build docker image locally and run docker container
 
@@ -83,7 +81,7 @@ You can specify your software environment by using all the [available configurat
 
 # What should my code structure be like ?
 
-Please follow the structure documented in the included [my_controller.py](https://github.com/AIcrowd/neurips_goal_real_robots_starter_kit/blob/master/my_controller.py) to adapt
+Please follow the structure documented in the included [my_controller.py](https://github.com/AIcrowd/REAL2020_starter_kit/blob/master/my_controller.py) to adapt
 your already existing code to the required structure for this round.
 
 ## Important Concepts
@@ -95,10 +93,10 @@ your already existing code to the required structure for this round.
 
 ```json
 {
-  "challenge_id": "goal_real_robots_challenge_2019",
-  "grader_id": "goal_real_robots_challenge_2019",
+  "challenge_id": "real-robots-2020",
+  "grader_id": "real-robots-2020",
   "authors": ["mohanty"],
-  "description": "Robot open-Ended Autonomous Learning (REAL) Challenge.",
+  "description": "Robot open-Ended Autonomous Learning 2020 (REAL2020) Challenge.",
   "license" : "MIT",
   "debug": true
 }
@@ -128,7 +126,7 @@ Then you can add the correct git remote, and finally submit by doing :
 ```
 cd neurips_goal_real_robots_starter_kit
 # Add AIcrowd git remote endpoint
-git remote add aicrowd git@gitlab.aicrowd.com:<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit.git
+git remote add aicrowd git@gitlab.aicrowd.com:<YOUR_AICROWD_USER_NAME>/REAL2020_starter_kit.git
 git push aicrowd master
 
 # Create a tag for your submission and push
@@ -141,7 +139,7 @@ git push aicrowd submission-v0.1
 ```
 
 You now should be able to see the details of your submission at :
-[https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues](https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues)
+[https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/REAL2020_starter_kit/issues](https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues)
 
 **NOTE**: Remember to update your username in the link above :wink:
 
@@ -154,4 +152,5 @@ In the link above, you should start seeing something like this take shape (the w
 
 
 # Author
-**[Sharada Mohanty](https://twitter.com/MeMohanty)**
+**[Sharada Mohanty](https://twitter.com/MeMohanty)**  
+**Emilio Cartoni**
