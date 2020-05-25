@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from tensorflow.keras.layers import Lambda, Input, Dense
 from tensorflow.keras.models import Model
-from tensorflow.keras.datasets import mnist
 from tensorflow.keras.losses import mse, binary_crossentropy
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend as K
@@ -11,15 +10,18 @@ import numpy as np
 import baseline.config as config
 import baseline.priorityQueue as pq
 
+
 def currentAbstraction(obs):
     '''
-    Extract the coordinates from the input (observation) taking only x, y, z depending on the config file
+    Extract the coordinates from the input (observation) taking only x, y, z
+    depending on the config file
 
     Args:
-        obs (list): list of observations in different form (image, coordinates, mask)
+        obs (list): list of observations in different form
+                    (image, coordinates, mask)
 
     Returns:
-        coordinates list (list)          
+        coordinates list (list)
     '''
     if config.abst['type'] == 'pos':
         return abstractionFromPos(obs[1])
@@ -30,35 +32,35 @@ def currentAbstraction(obs):
     elif config.abst['type'] == 'image':
         return obs[0]
 
+
 def abstractionFromPos(pos_dict):
     '''
-    Extract the coordinates from the input 
+    Extract the coordinates from the input
 
     Args:
         pos_dict (dictionary): dictionary = {object0:coords0,...,objectN:coordsN}
 
     Returns:
-        coordinates list (list): [coords0,...,coordsN]         
+        coordinates list (list): [coords0,...,coordsN]
     '''
-    abst = np.hstack([pos_dict[obj] for obj in ['cube','tomato','mustard'] if obj in pos_dict])
+    abst = np.hstack([pos_dict[obj] for obj in ['cube', 'tomato', 'mustard'] if obj in pos_dict])
     abst = np.round(abst, config.abst['precision'])
     return abst
+
 
 def abstractionFromPosNoQ(pos_dict):
     '''
-    Extract the coordinates from the input taking only x, y, z 
+    Extract the coordinates from the input taking only x, y, z
 
     Args:
         pos_dict (dictionary): dictionary = {object0:coords0,...,objectN:coordsN}
 
     Returns:
-        coordinates list (list): [coords0[:2],...,coordsN[:2]]         
+        coordinates list (list): [coords0[:2],...,coordsN[:2]]
     '''
-    abst = np.hstack([pos_dict[obj][:2] for obj in ['cube','tomato','mustard'] if obj in pos_dict])
+    abst = np.hstack([pos_dict[obj][:2] for obj in ['cube', 'tomato', 'mustard'] if obj in pos_dict])
     abst = np.round(abst, config.abst['precision'])
     return abst
-
-
 
 
 class Abstractor():
@@ -84,23 +86,22 @@ class Abstractor():
             return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
         fl = masks
-            
 
-        x_train = fl[:int(np.floor(len(fl)*0.80))]
-        x_test = fl[int(np.ceil(len(fl)*0.80)):]
-        image_rows = x_train[0].shape[0] 
-        image_columns = x_train[0].shape[1] 
-        original_dim = image_rows * image_columns 
-        x_train = np.reshape(x_train, [-1, original_dim]) 
-        x_test = np.reshape(x_test, [-1, original_dim]) 
-        
+        x_train = fl[:int(np.floor(len(fl) * 0.80))]
+        x_test = fl[int(np.ceil(len(fl) * 0.80)):]
+        image_rows = x_train[0].shape[0]
+        image_columns = x_train[0].shape[1]
+        original_dim = image_rows * image_columns
+        x_train = np.reshape(x_train, [-1, original_dim])
+        x_test = np.reshape(x_test, [-1, original_dim])
+
         if config.abst['type'] == 'image':
             x_train = x_train.astype('float32') / 255.
             x_test = x_test.astype('float32') / 255.
 
-        input_shape = (original_dim, ) 
-        intermediate_dim = 512 
-        batch_size = 128 
+        input_shape = (original_dim, )
+        intermediate_dim = 512
+        batch_size = 128
         latent_dim = 6
         epochs = 50
 
@@ -118,7 +119,7 @@ class Abstractor():
         # instantiate encoder model
         self.encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
         self.encoder.summary()
-        #plot_model(encoder, to_file='vae_mlp_encoder.png', show_shapes=True)
+        # plot_model(encoder, to_file='vae_mlp_encoder.png', show_shapes=True)
 
         # build decoder model
         latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
@@ -132,8 +133,6 @@ class Abstractor():
         # instantiate VAE model
         outputs = self.decoder(self.encoder(inputs)[2])
         vae = Model(inputs, outputs, name='vae_mlp')
-
-        models = (self.encoder, self.decoder)
 
         # VAE loss = mse_loss or xent_loss + kl_loss
         if False:
@@ -154,7 +153,6 @@ class Abstractor():
                    to_file='vae_mlp.png',
                    show_shapes=True)
 
-
         # train the autoencoder
         vae.fit(x_train,
                 epochs=epochs,
@@ -168,19 +166,19 @@ class Abstractor():
         return self.decoder
 
     def get_abstraction_from_binary_image(self, image):
-        return self.encoder.predict(np.reshape(image,[-1,len(image)*len(image[0])]))
+        return self.encoder.predict(np.reshape(image, [-1, len(image) * len(image[0])]))
 
     def get_abstraction_from_mask(self, mask):
-        #here implement preprocessing 
-        return self.encoder.predict(np.reshape(mask,[-1,len(mask)*len(mask[0])]))
-    
+        # here implement preprocessing
+        return self.encoder.predict(np.reshape(mask, [-1, len(mask) * len(mask[0])]))
+
 
 class DynamicAbstractor():
     '''
     This class allows you to gradually release the description of the states contained in the actions.
 
     Args:
-        actions (list): a list of (precondition, action, postcondition), where conditions are float lists 
+        actions (list): a list of (precondition, action, postcondition), where conditions are float lists
 
     Attributes:
         actions (list): where the input actions are saved
@@ -191,50 +189,47 @@ class DynamicAbstractor():
         if len(actions[0]) != 3:
             print("Legal actions consist of (precondition,action,postcondition)")
             return None
-        
+
         if not isinstance(actions[0][0], type(np.array([]))) or not isinstance(actions[0][2], type(np.array([]))):
             print("Each conditions have to be numpy.ndarray")
-            return None         
-        
-        
+            return None
+
         if config.abst['type'] == 'mask':
             masks = [np.array([raw == 2 for raw in action[2]]) for action in actions]
             ab = Abstractor(masks)
             self.encoder = ab.get_encoder()
 
             self.actions = []
-            n_cells = len(actions[0][0])*len(actions[0][0][0])
+            n_cells = len(actions[0][0]) * len(actions[0][0][0])
             z = 0
-            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
+            post = np.array(self.encoder.predict(np.reshape(actions[0][0], [-1, n_cells]))[0][0])
             for a in actions:
-                if z % 100 == 0:         
+                if z % 100 == 0:
                     print("{}-esima azione tradotta".format(z))
-                z += 1                                
+                z += 1
                 pre = post
-                post = np.array(self.encoder.predict(np.reshape(a[2],[-1,n_cells]))[0][0])
-                self.actions += [np.array([pre,a[1],post])]
-
+                post = np.array(self.encoder.predict(np.reshape(a[2], [-1, n_cells]))[0][0])
+                self.actions += [np.array([pre, a[1], post])]
 
             print(self.actions[0])
 
         elif config.abst['type'] == 'image':
-            images = [actions[i][2] for i in range(0,len(actions),3)]
-            
+            images = [actions[i][2] for i in range(0, len(actions), 3)]
+
             ab = Abstractor(images)
             self.encoder = ab.get_encoder()
 
             self.actions = []
-            n_cells = len(actions[0][0])*len(actions[0][0][0])*3
+            n_cells = len(actions[0][0]) * len(actions[0][0][0]) * 3
             z = 0
-            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
+            post = np.array(self.encoder.predict(np.reshape(actions[0][0], [-1, n_cells]))[0][0])
             for a in actions:
-                if z % 100 == 0:         
+                if z % 100 == 0:
                     print("{}-esima azione tradotta".format(z))
-                z += 1                                
+                z += 1
                 pre = post
-                post = np.array(self.encoder.predict(np.reshape(a[2],[-1,n_cells]))[0][0])
-                self.actions += [np.array([pre,a[1],post])]
-
+                post = np.array(self.encoder.predict(np.reshape(a[2], [-1, n_cells]))[0][0])
+                self.actions += [np.array([pre, a[1], post])]
 
             print(self.actions[0])
 
@@ -243,24 +238,23 @@ class DynamicAbstractor():
 
         self.dictionary_abstract_actions = {}
 
-        #For each variable in actions condition it add a list to put the significative differences 
+        # For each variable in actions condition it add a list to put the significative differences
         condition_dimension = len(self.actions[0][0])
         self.lists_significative_differences = [[] for i in range(condition_dimension)]
 
-        ordered_differences_queues = [pq.PriorityQueue() for i in range(condition_dimension)]   
+        ordered_differences_queues = [pq.PriorityQueue() for i in range(condition_dimension)]
 
-        differences = abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))
-        for i in range(condition_dimension): 
-            for j in range(len(self.actions)): 
-                ordered_differences_queues[i].enqueue(None, differences[j][i])         
+        differences = abs(np.take(self.actions, 0, axis=1) - np.take(self.actions, 2, axis=1))
+        for i in range(condition_dimension):
+            for j in range(len(self.actions)):
+                ordered_differences_queues[i].enqueue(None, differences[j][i])
 
-        actions_to_remove = int(np.floor(len(self.actions)*config.abst['percentage_of_actions_ignored_at_the_extremes']))
-        
-        for i in range(condition_dimension): 
+        actions_to_remove = int(np.floor(len(self.actions) * config.abst['percentage_of_actions_ignored_at_the_extremes']))
+
+        for i in range(condition_dimension):
             sup = ordered_differences_queues[i].get_queue_values()
-            for j in np.linspace(actions_to_remove,len(self.actions)-1-actions_to_remove, config.abst['total_abstraction']).round(0):
+            for j in np.linspace(actions_to_remove, len(self.actions) - 1 - actions_to_remove, config.abst['total_abstraction']).round(0):
                 self.lists_significative_differences[i] += [sup[int(j)]]
-            
 
     def get_abstraction(self, abstraction_level):
         '''
@@ -270,8 +264,8 @@ class DynamicAbstractor():
             abstraction_level (int)
 
         Returns:
-            distances (numpy.ndarray): where the i-th cell of the vector represents the input abstraction on the i-th variable         
-        '''    
+            distances (numpy.ndarray): where the i-th cell of the vector represents the input abstraction on the i-th variable
+        '''
         return np.array([self.lists_significative_differences[i][abstraction_level] for i in range(len(self.lists_significative_differences))])
 
     def get_dist(self, cond1, cond2):
@@ -283,10 +277,9 @@ class DynamicAbstractor():
             cond2 (list of float)
 
         Returns:
-            distance (int)         
-        '''      
-        return np.sum(abs(cond1-cond2))  
+            distance (int)
+        '''
+        return np.sum(abs(cond1 - cond2))
 
     def get_encoder(self):
-        return self.encoder 
-
+        return self.encoder
