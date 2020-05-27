@@ -1,6 +1,6 @@
 abstraction:
   precision: 8
-  type: mask
+  type: image
   total_abstraction: 200
   percentage_of_actions_ignored_at_the_extremes: 0.0
 planner:
@@ -9,7 +9,7 @@ planner:
   type: mega
   action_size: 1000
 simulation:
-  experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/2749.npy
+  experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/2016_image.npy
   extrinsic_steps: 10000
   save_images: true
   save_masks: true

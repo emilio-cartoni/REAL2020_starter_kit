@@ -209,7 +209,7 @@ class PlanAction(State):
         pre_pos = observation['object_positions']
         pre_mask = observation['mask'] if config.sim['save_masks'] else None
         pre = (pre_image, pre_pos, pre_mask)
-
+        
         goal = (observation['goal'], observation['goal_positions'], observation['goal_mask'])
 
         pre_abs = currentAbstraction(pre)

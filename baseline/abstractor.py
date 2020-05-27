@@ -10,6 +10,7 @@ from tensorflow.keras import backend as K
 import numpy as np
 import baseline.config as config
 import baseline.priorityQueue as pq
+import cv2
 
 def currentAbstraction(obs):
     '''
@@ -23,10 +24,12 @@ def currentAbstraction(obs):
     '''
     if config.abst['type'] == 'pos':
         return abstractionFromPos(obs[1])
-    if config.abst['type'] == 'pos_noq':
+    elif config.abst['type'] == 'pos_noq':
         return abstractionFromPosNoQ(obs[1])
     elif config.abst['type'] == 'mask':
-        return obs[2]
+        return obs[2] + 1
+    elif config.abst['type'] == 'filtered_mask':
+        return obs[2] == 2
     elif config.abst['type'] == 'image':
         return obs[0]
 
@@ -83,7 +86,9 @@ class Abstractor():
             epsilon = K.random_normal(shape=(batch, dim))
             return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
+
         fl = masks
+
             
 
         x_train = fl[:int(np.floor(len(fl)*0.80))]
@@ -91,18 +96,24 @@ class Abstractor():
         image_rows = x_train[0].shape[0] 
         image_columns = x_train[0].shape[1] 
         original_dim = image_rows * image_columns 
+        #if config.abst['type'] == 'image':
+            #original_dim *= 3
         x_train = np.reshape(x_train, [-1, original_dim]) 
         x_test = np.reshape(x_test, [-1, original_dim]) 
         
-        if config.abst['type'] == 'image':
-            x_train = x_train.astype('float32') / 255.
-            x_test = x_test.astype('float32') / 255.
+        if config.abst['type'] == 'mask':
+            maximum = np.max([np.max(mask) for mask in fl])
+            x_train = x_train.astype('float32') / maximum
+            x_test = x_test.astype('float32') / maximum
+        #elif config.abst['type'] == 'image':
+        #    x_train = x_train.astype('float32') / 255.
+        #    x_test = x_test.astype('float32') / 255.
 
         input_shape = (original_dim, ) 
-        intermediate_dim = 512 
+        intermediate_dim = 512
         batch_size = 128 
         latent_dim = 6
-        epochs = 50
+        epochs = 30
 
         # VAE model = encoder + decoder
         # build encoder model
@@ -196,9 +207,9 @@ class DynamicAbstractor():
             print("Each conditions have to be numpy.ndarray")
             return None         
         
-        
+
         if config.abst['type'] == 'mask':
-            masks = [np.array([raw == 2 for raw in action[2]]) for action in actions]
+            masks = [action[2] for action in actions]
             ab = Abstractor(masks)
             self.encoder = ab.get_encoder()
 
@@ -206,34 +217,76 @@ class DynamicAbstractor():
             n_cells = len(actions[0][0])*len(actions[0][0][0])
             z = 0
             post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
-            for a in actions:
-                if z % 100 == 0:         
-                    print("{}-esima azione tradotta".format(z))
-                z += 1                                
+            
+            reshaping = np.reshape(masks,[len(masks),len(masks[0])*len(masks[0][0])]) 
+            predictions = self.encoder.predict(reshaping)
+
+            for i in range(len(actions)):
+                if i % 100 == 0:         
+                    print("{}-esima azione tradotta".format(i))
+                              
                 pre = post
-                post = np.array(self.encoder.predict(np.reshape(a[2],[-1,n_cells]))[0][0])
-                self.actions += [np.array([pre,a[1],post])]
+                post = np.array(predictions[0][i])
+                self.actions += [np.array([pre,actions[i][1],post])]
+
+
+            print(self.actions[0])
+        
+        elif config.abst['type'] == 'filtered_mask':
+            masks = [actions[i][2] for i in range(len(actions))]
+            ab = Abstractor(masks)
+            self.encoder = ab.get_encoder()
+
+            self.actions = []
+            n_cells = len(actions[0][0])*len(actions[0][0][0])
+            z = 0
+            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
+
+            reshaping = np.reshape(masks,[len(masks),len(masks[0])*len(masks[0][0])]) 
+            predictions = self.encoder.predict(reshaping)
+
+            for i in range(len(actions)):
+                if i % 100 == 0:         
+                    print("{}-esima azione tradotta".format(i))
+                              
+                pre = post
+                post = np.array(predictions[0][i])
+                self.actions += [np.array([pre,actions[i][1],post])]
 
 
             print(self.actions[0])
 
         elif config.abst['type'] == 'image':
-            images = [actions[i][2] for i in range(0,len(actions),3)]
+            images = [actions[i][2] for i in range(len(actions))]
+            print("Total images {} for VAE and BS".format(len(images)))
+
+            cbsm = cv2.createBackgroundSubtractorMOG2(len(images)) 
+            for i in range(len(images)): 
+                cbsm.apply(images[i][2],images[i][0])
+
+            self.background = cbsm.getBackgroundImage()
+            images = np.average(abs(images - self.background),axis=3) != 0
             
             ab = Abstractor(images)
             self.encoder = ab.get_encoder()
 
             self.actions = []
-            n_cells = len(actions[0][0])*len(actions[0][0][0])*3
-            z = 0
-            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
-            for a in actions:
-                if z % 100 == 0:         
-                    print("{}-esima azione tradotta".format(z))
-                z += 1                                
+            n_cells = len(actions[0][0])*len(actions[0][0][0])
+
+            post = np.array(self.encoder.predict(np.reshape(np.average(abs(actions[0][0] - self.background),axis=2) != 0,[-1,n_cells]))[0][0])
+
+            reshaping = np.reshape(images,[len(images),len(images[0])*len(images[0][0])]) 
+            predictions = self.encoder.predict(reshaping)
+            
+
+            
+            for i in range(len(actions)):
+                if i % 100 == 0:         
+                    print("{}-esima azione tradotta".format(i))
+                              
                 pre = post
-                post = np.array(self.encoder.predict(np.reshape(a[2],[-1,n_cells]))[0][0])
-                self.actions += [np.array([pre,a[1],post])]
+                post = np.array(predictions[0][i])
+                self.actions += [np.array([pre,actions[i][1],post])]
 
 
             print(self.actions[0])
@@ -289,4 +342,7 @@ class DynamicAbstractor():
 
     def get_encoder(self):
         return self.encoder 
+
+    def background_subtractor(self, img):
+        return abs(img - self.background)
 

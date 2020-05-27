@@ -3,6 +3,7 @@ import baseline.priorityQueue as pqClass
 import numpy as np
 import baseline.abstractor as abstr
 import baseline.config as config
+import matplotlib.pyplot as plt
 
 
 class Planner():
@@ -65,15 +66,29 @@ class Planner():
             self.q_stopped = {}
 
 
-            if config.abst['type'] == 'mask':
-                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])]))[0][0]
-                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])]))[0][0] 
+            if config.abst['type'] == 'filtered_mask':
+                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal, [-1,len(goal)*len(goal[0])]))[0][0]
+                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start, [-1,len(start)*len(start[0])]))[0][0] 
+            elif config.abst['type'] == 'mask':
+                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal, [-1,len(goal)*len(goal[0])]))[0][0]
+                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start, [-1,len(start)*len(start[0])]))[0][0] 
             elif config.abst['type'] == 'image':
-                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal,[-1,len(goal)*len(goal[0])*3]))[0][0]
-                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start,[-1,len(start)*len(start[0])*3]))[0][0]    
+                abstr_goal = np.average(self.abstractor.background_subtractor(goal),axis=2) != 0
+                abstr_start = np.average(self.abstractor.background_subtractor(start),axis=2)  != 0     
+
+                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(abstr_goal,[-1,len(goal)*len(goal[0])]))[0][0]
+                abstr_start = self.abstractor.get_encoder().predict( np.reshape(abstr_start,[-1,len(start)*len(start[0])]))[0][0]
+                print(abstr_goal)    
+                print(abstr_start)
+                
+                
             else:
                 abstr_goal = goal
                 abstr_start =  start            
+
+            plt.imshow(start)
+            plt.savefig("figura_start")
+
 
             plan = []
             for lev_depth in range(self.plan_size,self.plan_size+1):
@@ -92,10 +107,10 @@ class Planner():
                     if plan:
                         return plan
 
-                self.first_depth = False
+                #self.first_depth = False
 
             if not plan:
-                self.stop_plan = True
+            #    self.stop_plan = True
                 return []
 
             return plan
