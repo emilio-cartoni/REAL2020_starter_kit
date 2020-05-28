@@ -262,7 +262,7 @@ class DynamicAbstractor():
 
             cbsm = cv2.createBackgroundSubtractorMOG2(len(images)) 
             for i in range(len(images)): 
-                cbsm.apply(images[i][2],images[i][0])
+                cbsm.apply(images[i])
 
             self.background = cbsm.getBackgroundImage()
             images = np.average(abs(images - self.background),axis=3) != 0

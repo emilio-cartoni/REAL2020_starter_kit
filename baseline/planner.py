@@ -34,6 +34,10 @@ class Planner():
         self.actions_dicts = {}
         self.pre_post_different_for_abstractions = {}
 
+        fig, axes = plt.subplots(1,2)
+        self.fig = fig
+        self.axes = axes
+
     def plan(self, goal, start, actions=None, alg='mega'):
         '''
         Search a sequence of actions that bring the current state to the goal state by giving priority to the smaller ones. Based on the number of steps dedicated to 
@@ -86,8 +90,9 @@ class Planner():
                 abstr_goal = goal
                 abstr_start =  start            
 
-            plt.imshow(start)
-            plt.savefig("figura_start")
+            self.axes[0].imshow(start)
+            self.axes[1].imshow(goal)
+            plt.savefig("planning_situation")
 
 
             plan = []

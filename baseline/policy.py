@@ -313,9 +313,9 @@ class Baseline(BasePolicy):
         self.goal = None
         self.plan_sequence = []
         self.n_plans = 0
-        fig, axes = plt.subplots(3,3)
-        self.fig = fig
-        self.axes = axes
+        #fig, axes = plt.subplots(3,3)
+        #self.fig = fig
+        #self.axes = axes
         self.action_space = action_space['macro_action']
         self.explorer = exp.RandomExploreAgent(self.action_space)
         self.first_step = True

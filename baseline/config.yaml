@@ -13,4 +13,4 @@ simulation:
   extrinsic_steps: 10000
   save_images: true
   save_masks: true
-  use_experience_data: true
+  use_experience_data: false
