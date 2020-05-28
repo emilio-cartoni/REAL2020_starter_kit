@@ -18,13 +18,13 @@ class PriorityQueue(object):
 
         self.empty = False
 
-     def dequeue(self):
+    def dequeue(self):
         if self.empty:
             return None, None
-     
+
         e = self.queue[0]
         self.queue = self.queue[1:]
-        
+
         if not self.queue:
             self.empty = True
 
