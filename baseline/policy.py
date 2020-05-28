@@ -78,9 +78,12 @@ class EndAction(State):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position
         '''
-        post_image = observation['retina'] if config.sim['save_images'] else None
+        keep_image = config.sim['save_images'] or config.abst['type'] == 'image'
+        keep_mask = config.sim['save_masks'] or config.abst['type'] == 'mask'
+
+        post_image = observation['retina'] if keep_image else None
         post_pos = observation['object_positions']
-        post_mask = observation['mask'] if config.sim['save_masks'] else None
+        post_mask = observation['mask'] if keep_mask else None
         post = (post_image, post_pos, post_mask)
         self.actionData += [post]
         self.caller.storeAction(self.actionData)
@@ -120,14 +123,17 @@ class ProposeNewAction(State):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position
         '''
-        pre_image = observation['retina'] if config.sim['save_images'] else None
+        keep_image = config.sim['save_images'] or config.abst['type'] == 'image'
+        keep_mask = config.sim['save_masks'] or config.abst['type'] == 'mask'
+
+        pre_image = observation['retina'] if keep_image else None
         pre_pos = observation['object_positions']
-        pre_mask = observation['mask'] if config.sim['save_masks'] else None
-        pre_action = (pre_image, pre_pos, pre_mask)
+        pre_mask = observation['mask'] if keep_mask else None
+        pre = (pre_image, pre_pos, pre_mask)
 
         self.action = np.array([self.point_1, self.point_2])
 
-        self.actionData += [pre_action, (self.point_1, self.point_2)]
+        self.actionData += [pre, (self.point_1, self.point_2)]
         nextState = DoAction(self.action)
         return nextState.step(observation, reward, done)
 
@@ -184,9 +190,12 @@ class PlanAction(State):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position
         '''
-        pre_image = observation['retina'] if config.sim['save_images'] else None
+        keep_image = config.sim['save_images'] or config.abst['type'] == 'image'
+        keep_mask = config.sim['save_masks'] or config.abst['type'] == 'mask'
+
+        pre_image = observation['retina'] if keep_image else None
         pre_pos = observation['object_positions']
-        pre_mask = observation['mask'] if config.sim['save_masks'] else None
+        pre_mask = observation['mask'] if keep_mask else None
         pre = (pre_image, pre_pos, pre_mask)
 
         goal = (observation['goal'], observation['goal_positions'], observation['goal_mask'])
@@ -316,6 +325,20 @@ class Baseline(BasePolicy):
         Returns:
 
         '''
+        if not config.sim['save_images']:
+            for action in self.allActions:
+                pre = action[0]
+                action[0] = (None, pre[1], pre[2])
+                post = action[2]
+                action[2] = (None, post[1], post[2])
+
+        if not config.sim['save_masks']:
+            for action in self.allActions:
+                pre = action[0]
+                action[0] = (pre[0], pre[1], None)
+                post = action[2]
+                action[2] = (post[0], post[1], None)
+
         np.save(fileName, self.allActions)
 
     def step(self, observation, reward, done):
