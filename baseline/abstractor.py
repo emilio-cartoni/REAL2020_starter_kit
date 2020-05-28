@@ -86,9 +86,7 @@ class Abstractor():
             epsilon = K.random_normal(shape=(batch, dim))
             return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
-
         fl = masks
-
             
 
         x_train = fl[:int(np.floor(len(fl)*0.80))]
@@ -207,7 +205,7 @@ class DynamicAbstractor():
             print("Each conditions have to be numpy.ndarray")
             return None         
         
-
+        
         if config.abst['type'] == 'mask':
             masks = [action[2] for action in actions]
             ab = Abstractor(masks)

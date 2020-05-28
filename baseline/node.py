@@ -1,7 +1,5 @@
-import numpy as np
-
-class Node(object): 
-    def __init__(self, attribute, value=None, cost=None, father=None): 
+class Node(object):
+    def __init__(self, attribute, value=None, cost=None, father=None):
         self.childs = []
         self.attribute = attribute
         self.father = father
@@ -17,11 +15,11 @@ class Node(object):
         self.identity["Value"] = self.value
         self.identity["Cost"] = self.cost
 
-    def __str__(self): 
-        self.identity["Is-leaf"] = self.leaf 
+    def __str__(self):
+        self.identity["Is-leaf"] = self.leaf
         return "Node({})".format(self.identity)
 
-    def is_leaf(self): 
+    def is_leaf(self):
         return self.leaf
 
     def add_child(self, node):
@@ -42,9 +40,9 @@ class Node(object):
 
     def get_cost(self):
         return self.cost
-    
+
     def get_value_plus_cost(self):
-        return self.value + self.cost 
+        return self.value + self.cost
 
     def get_depth(self):
         return self.depth
@@ -53,13 +51,12 @@ class Node(object):
         if not isinstance(node, Node):
             print("Node: two different classes are comparing")
             print("Wrong input: {}".format(str(node)))
-            
+
             return None
-        
+
         if node.get_attribute() == self.get_attribute():
             return True
         return False
 
-    def __ne__(self, node): 
-        return not node == self 
-
+    def __ne__(self, node):
+        return not node == self

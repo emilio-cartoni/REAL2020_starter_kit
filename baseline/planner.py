@@ -112,7 +112,7 @@ class Planner():
                     if plan:
                         return plan
 
-                #self.first_depth = False
+                
 
             if not plan:
             #    self.stop_plan = True
