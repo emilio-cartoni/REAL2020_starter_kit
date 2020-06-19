@@ -1,10 +1,6 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-<<<<<<< HEAD
-import tensorflow as tf
-=======
-
 # Set memory growth
 import tensorflow as tf
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -19,7 +15,6 @@ if gpus:
     # Memory growth must be set before GPUs have been initialized
     print(e)
 
->>>>>>> 61366f9454de3e234a8c9bafb696ae711818fd0c
 from tensorflow.keras.layers import Lambda, Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.datasets import mnist
@@ -97,19 +92,6 @@ class Abstractor():
         dencoder (instance): function map from latent space to image 
     '''
     def __init__(self, images):
-
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        if gpus:
-            try:
-                # Currently, memory growth needs to be the same across GPUs
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-            except RuntimeError as e:
-                # Memory growth must be set before GPUs have been initialized
-                print(e)
-
 
         # reparameterization trick
         # instead of sampling from Q(z|X), sample epsilon = N(0,I)
