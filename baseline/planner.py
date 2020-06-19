@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 class Planner():
     '''
-    This class implements a planning algorithm which is used by passing it the abstract actions, the level of abstraction and the maximum length of the plan. 
-    The abstraction is done from the smallest to the largest in order to prefer minimal abstractions. The length of the plan is given incrementally so as to prefer short plans.
+    This class instantiate several data structure to aim to have a good planning. It use the abstractor class to make abstraction on the actions given in input.
+    The planning algorithm is a A*-like algorithm and the abstractor use the VAE to do abstraction.
 
     Args:
         actions (list): a list of actions with format (precondition, action, postcondition)
@@ -18,7 +18,6 @@ class Planner():
         actions (list): where the actions are saved
         last_goal (numpy.ndarray): where the current goal is saved to intercept the moment when it changes
         abstractor (DynamicAbstractor instance): this instance allows you to have the abstract actions to pass to the planner
-        stop_plan (bool): a flag that allows you not to replan if a plan has not been found in the previous step and the goal has not changed
         actions_dicts (dict): where for each pair (i-th action, k-th level of abstraction) are saved all the actions with abstract precondition at the k-th 
                                 level of abstraction compatible with the postcondition of the i-th abstract action at the k-th level of abstraction
         pre_post_different_for_abstractions (dict): where a list is created for each level of abstraction that represents the actions that have precondition equal
@@ -30,7 +29,6 @@ class Planner():
 
         #data structures used to optimize
         self.last_goal = np.array([])
-        self.stop_plan = False
         self.actions_dicts = {}
         self.pre_post_different_for_abstractions = {}
 
@@ -40,82 +38,89 @@ class Planner():
 
     def plan(self, goal, start, actions=None, alg='mega'):
         '''
-        Search a sequence of actions that bring the current state to the goal state by giving priority to the smaller ones. Based on the number of steps dedicated to 
-        the extrinsic phase for each goal, it calculates the maximum possible length L of the plan and requires at the planning algorithm to have a plan of length 1,2,...,L. 
-        Before increasing the length of the plane, try to use all the available abstractions giving priority to the smallest ones.
+        The planning is executed in the following way: it use the abstractor to transform the actions in abstracted actions of level 1 (where level 1 is the least abstraction); 
+        it try to find a sequence of actions which get the current state to goal state; if it find it, then return the sequence, else augment the abstraction level.
 
         Args:
             goal (numpy.ndarray): vector representing the desired state
             start (numpy.ndarray): vector representing the current state
             actions (float): a list of actions with format (precondition, action, postcondition)
 
+        Attributes:
+            last_goal (np.ndarray): where the current goal is saved to allows the goal change detection
+            plan_size (int): maximum plan size
+
         Returns:
-            sequence (list): a list of actions with format [(precondition, action, postcondition),...,(precondition, action, postcondition)] where the first action 												represents the current state and the last action the desired state    
+            sequence (list): actions list with format [(precondition, action, postcondition),...,(precondition, action, postcondition)] where the first action 
+                                represents the current state and the last action the desired state    
         '''
         if alg == 'mega':
             if not np.all(self.last_goal == goal):
                 self.last_goal = goal
-                self.stop_plan = False
                 self.plan_size = int(np.floor(config.sim['extrinsic_steps']/config.plan['action_size']))
-                self.first_depth = True
             else:
                 self.plan_size -= 1
-
-            if self.stop_plan:
-                return []
-
-            #data structures used to restore blocked nodes because the depth limit is exceeded
-            self.stopped = {}
-            self.visited = {}
-            self.q_stopped = {}
 
 
             if config.abst['type'] == 'filtered_mask':
                 abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal, [-1,len(goal)*len(goal[0])]))[0][0]
                 abstr_start = self.abstractor.get_encoder().predict( np.reshape(start, [-1,len(start)*len(start[0])]))[0][0] 
+                self.axes[0].imshow(start)
+                self.axes[1].imshow(goal)
+                plt.savefig("planning_situation")
+
             elif config.abst['type'] == 'mask':
                 abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal, [-1,len(goal)*len(goal[0])]))[0][0]
                 abstr_start = self.abstractor.get_encoder().predict( np.reshape(start, [-1,len(start)*len(start[0])]))[0][0] 
+                self.axes[0].imshow(start)
+                self.axes[1].imshow(goal)
+                plt.savefig("planning_situation")
+
             elif config.abst['type'] == 'image':
+                if config.abst['render'] == 'true':
+                    filtered_goal = [] 
+                    for i in range(len(goal)): 
+                        filtered_goal += [[]] 
+                        for j in range(len(goal[i])): 
+                            if np.all(goal[i][j] == [255,255,255]): 
+                                filtered_goal[i] += [np.array([178, 178, 204])] 
+                            else: 
+                                filtered_goal[i] += [goal[i][j]] 
+                    goal = filtered_goal
+
                 abstr_goal = np.average(self.abstractor.background_subtractor(goal),axis=2) != 0
                 abstr_start = np.average(self.abstractor.background_subtractor(start),axis=2)  != 0     
 
                 abstr_goal = self.abstractor.get_encoder().predict(np.reshape(abstr_goal,[-1,len(goal)*len(goal[0])]))[0][0]
                 abstr_start = self.abstractor.get_encoder().predict( np.reshape(abstr_start,[-1,len(start)*len(start[0])]))[0][0]
-                print(abstr_goal)    
-                print(abstr_start)
+                
+
+                self.axes[0].imshow(start)
+                self.axes[1].imshow(goal)
+                plt.savefig("planning_situation")
                 
                 
             else:
                 abstr_goal = goal
                 abstr_start =  start            
 
-            self.axes[0].imshow(start)
-            self.axes[1].imshow(goal)
-            plt.savefig("planning_situation")
-
-
             plan = []
-            for lev_depth in range(self.plan_size,self.plan_size+1):
-                print("Depth level: {}".format(lev_depth))
-      
-                for abstraction_level in range(config.abst['total_abstraction']):
-                    print("Abstraction level: {}".format(abstraction_level))
-                    
-                    if not abstraction_level in self.pre_post_different_for_abstractions:
-                        self.pre_post_different_for_abstractions[abstraction_level] = np.where(np.sum(
-                                                                                        np.array(list(abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))))
-                                                                                                > self.abstractor.get_abstraction(abstraction_level),axis=1))[0]
-                                         
-                    plan = self.forward_planning_with_prior_abstraction(abstr_goal, abstr_start, abstraction_level, lev_depth)
-                    
-                    if plan:
-                        return plan
+            for abstraction_level in range(config.abst['total_abstraction']):
+                print("Abstraction level: {}".format(abstraction_level))
+                
+                if not abstraction_level in self.pre_post_different_for_abstractions:
+                    self.pre_post_different_for_abstractions[abstraction_level] = np.where(np.sum(
+                                                                                    np.array(list(abs(np.take(self.actions,0,axis=1)-np.take(self.actions,2,axis=1))))
+                                                                                            > self.abstractor.get_abstraction(abstraction_level),axis=1))[0]
+                                     
+                plan = self.forward_planning_with_prior_abstraction(abstr_goal, abstr_start, abstraction_level, self.plan_size)
+                
+                if plan:
+                    return plan
 
                 
 
             if not plan:
-            #    self.stop_plan = True
                 return []
 
             return plan
@@ -125,9 +130,9 @@ class Planner():
 
     def forward_planning_with_prior_abstraction(self, goal_image, current, lev_abstr, depth):
         '''
-        Forward planning algorithm divided into three steps: (1) It find all the actions that have a precondition equal to the current state of the world and 
+        Forward planning algorithm divided into three steps: (1) It find all the actions have a precondition equal to the current state of the world and 
         it put them in the frontier set, (2) it add for each action in the frontier set the actions with precondition compatible with the postcondition of the 
-        action in question, (3) if it find a sequence of actions that reach to the desired state of the world, then it returns that sequence
+        action in question, (3) when it find a condition like the goal condition in the frontier, it returns the sequence of correspondent actions   
 
         Args:
             goal_image (numpy.ndarray): vector representing the desired abstract state at level lev_abstr 
@@ -156,15 +161,15 @@ class Planner():
             post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,2,axis=1))) - goal_image) <= abstraction_dists,axis=1))[0]
             s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
             s2 = set(post_goal_equals_for_abstractions)
-            #I take actions with a precondition other than postcondition in current abstraction
+            #It take actions with a precondition other than postcondition in current abstraction
             s = s1.intersection(s2)
             
             if list(s):
-                #I take actions with precondition equal to the current condition in current abstraction 
+                #It take actions with precondition equal to the current condition in current abstraction 
                                                        
                 pre_current_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,0,axis=1))) - current) <= abstraction_dists,axis=1))[0]   
                 s2 = set(pre_current_equals_for_abstractions)
-                #I take actions with a precondition other than postcondition in current abstraction
+                #It take actions with a precondition other than postcondition in current abstraction
                 s = s2.intersection(s1)
                 
                 for i in s:
@@ -174,18 +179,13 @@ class Planner():
 
             print("Add {} initial states".format(len(frontier)))
             visited = set()
-        else:
-            frontier = self.stopped[lev_abstr]
-            visited = self.visited[lev_abstr]
-            q = self.q_stopped[lev_abstr]
-            node = None
 
         stopped = set()
         while not q.is_empty():
             if len(visited) % 100 == 0 or len(visited) == 0:
                 print("Visited actions: {} Ready actions in queue: {}".format(len(visited),len(frontier)))
 
-            #I take the node with less distance traveled + distance from the goal
+            #It take the node with less distance traveled + distance from the goal
             node, value = q.dequeue()
 
             if node.get_attribute() in visited:
@@ -246,9 +246,6 @@ class Planner():
         sequence = []
         flag = 0
         if not visited or node is None or q.is_empty():
-            self.stopped[lev_abstr] = stopped
-            self.visited[lev_abstr] = visited
-            self.q_stopped[lev_abstr] = q_stopped
             return sequence
 
         if node is not None and not q.is_empty():

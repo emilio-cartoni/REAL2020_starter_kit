@@ -1,0 +1,24 @@
+abstraction:
+  precision: 8
+  type: image
+  total_abstraction: 200
+  percentage_of_actions_ignored_at_the_extremes: 0.0
+planner:
+  replan: true
+  try_random: false
+  type: mega
+  action_size: 1000
+simulation:
+<<<<<<< HEAD
+  experience_data: /home/davide/Documenti/gitProject/REAL2020_starter_kit/2016_image.npy
+  extrinsic_steps: 10000
+  save_images: true
+  save_masks: true
+  use_experience_data: false
+=======
+  experience_data: /home/summer/Desktop/REAL2020_starter_kit/7383.npy
+  extrinsic_steps: 10000
+  save_images: true
+  save_masks: False
+  use_experience_data: true
+>>>>>>> 8f5b54f003ad492c0fa520337cccc866778b0575
