@@ -77,16 +77,16 @@ class Planner():
                 plt.savefig("planning_situation")
 
             elif config.abst['type'] == 'image':
-                if config.abst['render'] == 'true':
-                    filtered_goal = [] 
-                    for i in range(len(goal)): 
-                        filtered_goal += [[]] 
-                        for j in range(len(goal[i])): 
-                            if np.all(goal[i][j] == [255,255,255]): 
-                                filtered_goal[i] += [np.array([178, 178, 204])] 
+                if config.sim['render']:
+                    filtered_start = [] 
+                    for i in range(len(start)): 
+                        filtered_start += [[]] 
+                        for j in range(len(start[i])): 
+                            if np.all(start[i][j] == [178, 178, 204]): 
+                                filtered_start[i] += [np.array([255,255,255])] 
                             else: 
-                                filtered_goal[i] += [goal[i][j]] 
-                    goal = filtered_goal
+                                filtered_start[i] += [start[i][j]] 
+                    start = filtered_start
 
                 abstr_goal = np.average(self.abstractor.background_subtractor(goal),axis=2) != 0
                 abstr_start = np.average(self.abstractor.background_subtractor(start),axis=2)  != 0     
@@ -97,6 +97,8 @@ class Planner():
 
                 self.axes[0].imshow(start)
                 self.axes[1].imshow(goal)
+                self.axes[0].set_title("Current situation")  
+                self.axes[1].set_title("Goal") 
                 plt.savefig("planning_situation")
                 
                 
@@ -154,33 +156,31 @@ class Planner():
         #Initialize two priority queues. The first for nodes with a sequence less than the allowed depth, the second for nodes blocked due to having exceeded the depth limit
         #This allows you to restore the search tree in the event that a solution with depth less than that allowed is not found
         q = pqClass.PriorityQueue()
-        q_stopped = pqClass.PriorityQueue()
 
-        if self.first_depth:
-            frontier = set()
-            post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,2,axis=1))) - goal_image) <= abstraction_dists,axis=1))[0]
-            s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
-            s2 = set(post_goal_equals_for_abstractions)
+
+        frontier = set()
+        post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,2,axis=1))) - goal_image) <= abstraction_dists,axis=1))[0]
+        s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
+        s2 = set(post_goal_equals_for_abstractions)
+        #It take actions with a precondition other than postcondition in current abstraction
+        s = s1.intersection(s2)
+        
+        if list(s):
+            #It take actions with precondition equal to the current condition in current abstraction 
+                                                   
+            pre_current_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,0,axis=1))) - current) <= abstraction_dists,axis=1))[0]   
+            s2 = set(pre_current_equals_for_abstractions)
             #It take actions with a precondition other than postcondition in current abstraction
-            s = s1.intersection(s2)
+            s = s2.intersection(s1)
             
-            if list(s):
-                #It take actions with precondition equal to the current condition in current abstraction 
-                                                       
-                pre_current_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions,0,axis=1))) - current) <= abstraction_dists,axis=1))[0]   
-                s2 = set(pre_current_equals_for_abstractions)
-                #It take actions with a precondition other than postcondition in current abstraction
-                s = s2.intersection(s1)
-                
-                for i in s:
-                    node = nodeClass.Node(i, self.abstractor.get_dist(self.actions[i][2], goal_image), self.abstractor.get_dist  (self.actions[i][0], self.actions[i][2]), None)
-                    q.enqueue(node, node.get_value_plus_cost())
-                    frontier.add(i)
+            for i in s:
+                node = nodeClass.Node(i, self.abstractor.get_dist(self.actions[i][2], goal_image), self.abstractor.get_dist  (self.actions[i][0], self.actions[i][2]), None)
+                q.enqueue(node, node.get_value_plus_cost())
+                frontier.add(i)
 
-            print("Add {} initial states".format(len(frontier)))
-            visited = set()
+        print("Add {} initial states".format(len(frontier)))
 
-        stopped = set()
+        visited = set()
         while not q.is_empty():
             if len(visited) % 100 == 0 or len(visited) == 0:
                 print("Visited actions: {} Ready actions in queue: {}".format(len(visited),len(frontier)))
@@ -196,12 +196,6 @@ class Planner():
                 frontier.remove(node.get_attribute())
                 visited.add(node.get_attribute())
                 break
-
-            #Check if the current node is still at an allowable depth
-            if node.get_depth() == depth:   
-                stopped.add(node.get_attribute())
-                q_stopped.enqueue(node,node.get_value_plus_cost())
-                continue 
 
             frontier.remove(node.get_attribute())
             visited.add(node.get_attribute())

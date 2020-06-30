@@ -7,9 +7,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import baseline.config as config
-import pybullet
 import baseline.explorer as exp
 from gym.spaces import Box
+import pybullet
+
 
 
 
@@ -357,6 +358,10 @@ class Baseline(BasePolicy):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t          
         '''
+        if self.first_step and config.sim['render']:
+            pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_SHADOWS,0)
+            self.first_step = False
+
         self.state, action, render = self.state.step(observation, reward, done)
 
         #print("DEBUG", action, render)
@@ -390,6 +395,7 @@ class Baseline(BasePolicy):
 
     def end_intrinsic_phase(self, observation, reward, done):
         self.step(observation, reward, done)
+        
 
     def start_extrinsic_phase(self):
         '''

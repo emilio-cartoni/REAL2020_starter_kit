@@ -130,14 +130,11 @@ class Abstractor():
             maximum = np.max([np.max(mask) for mask in fl])
             x_train = x_train.astype('float32') / maximum
             x_test = x_test.astype('float32') / maximum
-        #elif config.abst['type'] == 'image':
-        #    x_train = x_train.astype('float32') / 255.
-        #    x_test = x_test.astype('float32') / 255.
 
         input_shape = (original_dim, ) 
         intermediate_dim = 512
         batch_size = 128 
-        latent_dim = 14
+        latent_dim = 7
         epochs = 30
 
         # VAE model = encoder + decoder
@@ -207,7 +204,6 @@ class Abstractor():
         return self.encoder.predict(np.reshape(image,[-1,len(image)*len(image[0])]))
 
     def get_abstraction_from_mask(self, mask):
-        #here implement preprocessing 
         return self.encoder.predict(np.reshape(mask,[-1,len(mask)*len(mask[0])]))
     
 
@@ -284,9 +280,9 @@ class DynamicAbstractor():
             print("Total images {} for VAE and BS".format(len(images)))
             
             #check if images given in input is been sampled in render mode  
-            if config.abst['render'] == 'true' and images[0][0][0] != [178, 178, 204]:
-                print("The images isn't been collected in render mode!")
-                exit(0)
+            #if config.sim['render'] and images[0][0][0] != [178, 178, 204]:
+            #    print("The images isn't been collected in render mode!")
+            #    exit(0)
 
             cbsm = cv2.createBackgroundSubtractorMOG2(len(images)) 
             for i in range(len(images)): 
