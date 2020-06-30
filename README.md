@@ -78,6 +78,61 @@ This repository includes an example `environment.yml`
 
 You can specify your software environment by using all the [available configuration options of repo2docker](https://repo2docker.readthedocs.io/en/latest/config_files.html). (But please remember to use [aicrowd-repo2docker](https://pypi.org/project/aicrowd-repo2docker/) to have GPU support)
 
+# How can I connect my system to competition?
+You can use local_evaluation.py that in base the input will evaluate your system.
+
+## Evaluate input
+- controller: agent class instance with the follow methods: start_intrinsic_phase, start_estrinsic_phase e step  
+- round: "R1" or "R2", which represent Round1 and Round2 of the competition respectevily 
+- actions type: "cartesian", "joints" or "macro_action"
+- total objects: n element of {1,2,3}
+- intrinsic phase steps: interger number 
+- estrinsic phase steps for each goal: interger number 
+- total goal: integer number
+- render: True if you want visualize the robot simulation
+- goal file path: string
+
+### Input description
+Actions type:
+- 'macro_action': Numpy.ndarray([(x1,y1),(x2,y2)]), where (x1,y1) is the start point and (x2,y2) is the end point of the trajectory.
+- 'cartesian': Numpy.ndarray([x,y,z,o1,o2,o3,o4]), which it is the physics three dimensional space and the other points represent the gripper orientation.
+- 'joints': Numpy.ndarray([x1,x2,x3,x4,x5,x6,x7,x8,x9]), where it represent the desidered position for each joint
+
+Controller class instance:
+It have to be a class with the following methods:
+- start_intrinsic_phase:\
+  A class that allows to say at the agent that the instrinsic phase is started.
+  - input: nothing
+  - output: nothing
+
+- start_estrinsic_phase:\
+  A class that allows to say at the agent that the instrinsic phase is finished and that is started the extrinsic phase.
+  - input: nothing
+  - output: nothing
+
+- step:
+    - input: observation, reward, done
+      - observation is a dictionary with several keys. Most are descripted in [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md) and the rest below:
+        - retina: it is a rgb image (dimension: 240x320x3) with view from above of the table that show also the robot arm.
+        - object_positions: it is a dictionary with a key for each object on the table with associated the seven-dimensional position.
+        - mask: it is a filtered image (dimension: 240x320) with view from above of the table that show also the robot arm.
+        - goal: it is the rgb image that represent the goal.
+        - goal_positions: it is the objects position desidered.
+        - goal_mask: it is the filtered image that represent the goal.
+    - output: action
+      - action is a dictionary with two keys:
+        - action type: action
+        - render: boolean\
+        The evaluate class pass the dictionary (example: {'macro_action': Numpy.ndarray([ [0.1 , 0.3] , [0.2 , 0.3] ]), 'render': True}) to environment that will execute the specified action and it showing the simulation
+
+# How do I can use simplifications?
+## Actions space reduction:
+  - 'macro_action': it allow to reduce from joints space to four-dimensional space, where the four points (x1,y1,x2,y2) represent a trajectory on the table that starts from (x1,y1) and ends to (x2,y2).
+  - 'cartesian': it allow to reduce from joints space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the three-dimensional point in the space and the gripper orientation desidered. 
+  
+## Abstraction simplifications contained in the observations:
+  - coordinates: it allow to reduce from images space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the physics three dimensional space and the other points represent the object orientation.
+  - masks: it allow to reduce from images space to filtered images space, where a mask is an image that for each pixel has a integer number that let you know which object is in that pixel. (example: a cell with -1 represent the background pixel)
 
 # What should my code structure be like ?
 
