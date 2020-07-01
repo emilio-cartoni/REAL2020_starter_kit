@@ -119,12 +119,12 @@ It have to be a class with several methods which is called repetitively. These i
 
 # How do I can use simplifications?
 ## Actions space reduction:
-  - 'macro_action': it allow to reduce from joints space to four-dimensional space, where the four points (x1,y1,x2,y2) represent a trajectory on the table that starts from (x1,y1) and ends to (x2,y2).
-  - 'cartesian': it allow to reduce from joints space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the three-dimensional point in the space and the gripper orientation desidered. 
+  - 'macro_action': it allows to reduce from joints space to four-dimensional space, where the four points (x1,y1,x2,y2) represent a trajectory on the table that starts from (x1,y1) and ends to (x2,y2).
+  - 'cartesian': it allows to reduce from joints space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the three-dimensional point in the space and the gripper orientation desidered. 
   
 ## Abstraction simplifications contained in the observations:
-  - coordinates: it allow to reduce from images space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the physics three dimensional space and the other points represent the object orientation.
-  - masks: it allow to reduce from images space to filtered images space, where a mask is an image that for each pixel has a integer number that let you know which object is in that pixel. (example: a cell with -1 represent the background pixel)
+  - coordinates: it allows to reduce from images space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the physics three dimensional space and the other points represent the object orientation.
+  - masks: it allows to reduce from images space to filtered images space, where a mask is an image that for each pixel has a integer number that let you know which object is in that pixel. (example: a cell with -1 represent the background pixel)
 
 # What should my code structure be like ?
 
@@ -200,5 +200,5 @@ In the link above, you should start seeing something like this take shape (the w
 
 # Author
 **[Sharada Mohanty](https://twitter.com/MeMohanty)**  
-**Emilio Cartoni**
+**Emilio Cartoni**\
 **Davide Montella**
