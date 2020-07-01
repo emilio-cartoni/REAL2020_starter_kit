@@ -99,17 +99,7 @@ Actions type:
 - 'joints': Numpy.ndarray([x1,x2,x3,x4,x5,x6,x7,x8,x9]), where it represent the desidered position for each joint
 
 Controller class instance:
-It have to be a class with the following methods:
-- start_intrinsic_phase:\
-  A class that allows to say at the agent that the instrinsic phase is started.
-  - input: nothing
-  - output: nothing
-
-- start_estrinsic_phase:\
-  A class that allows to say at the agent that the instrinsic phase is finished and that is started the extrinsic phase.
-  - input: nothing
-  - output: nothing
-
+It have to be a class with several methods which is called repetitively. These is explained in [policy.py](https://github.com/AIcrowd/real_robots/blob/master/real_robots/policy.py). Here we specified only step method:
 - step:
     - input: observation, reward, done
       - observation is a dictionary with several keys. Most are descripted in [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md) and the rest below:
@@ -124,6 +114,8 @@ It have to be a class with the following methods:
         - action type: action
         - render: boolean\
         The evaluate class pass the dictionary (example: {'macro_action': Numpy.ndarray([ [0.1 , 0.3] , [0.2 , 0.3] ]), 'render': True}) to environment that will execute the specified action and it showing the simulation
+
+
 
 # How do I can use simplifications?
 ## Actions space reduction:
@@ -209,3 +201,4 @@ In the link above, you should start seeing something like this take shape (the w
 # Author
 **[Sharada Mohanty](https://twitter.com/MeMohanty)**  
 **Emilio Cartoni**
+**Davide Montella**
