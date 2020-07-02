@@ -314,9 +314,6 @@ class Baseline(BasePolicy):
         self.goal = None
         self.plan_sequence = []
         self.n_plans = 0
-        #fig, axes = plt.subplots(3,3)
-        #self.fig = fig
-        #self.axes = axes
         self.action_space = action_space['macro_action']
         self.explorer = exp.RandomExploreAgent(self.action_space)
 
@@ -331,7 +328,6 @@ class Baseline(BasePolicy):
         
         '''
         self.allActions += [actionData]
-        #print("Stored action!")
 
     def save(self, fileName):
         '''
@@ -358,11 +354,6 @@ class Baseline(BasePolicy):
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t          
         '''
         self.state, action, render = self.state.step(observation, reward, done)
-
-        #print("DEBUG", action, render)
-
-
-
         return {'macro_action': action, 'render': render}
 
     def plan(self, goal_abs, pre_abs):
