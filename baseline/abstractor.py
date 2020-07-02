@@ -19,7 +19,6 @@ from tensorflow.keras.layers import Lambda, Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.losses import mse, binary_crossentropy
-from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend as K
 import numpy as np
 import baseline.config as config
@@ -151,7 +150,6 @@ class Abstractor():
         # instantiate encoder model
         self.encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
         self.encoder.summary()
-        #plot_model(encoder, to_file='vae_mlp_encoder.png', show_shapes=True)
 
         # build decoder model
         latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
@@ -183,10 +181,6 @@ class Abstractor():
         vae.add_loss(vae_loss)
         vae.compile(optimizer='adam')
         vae.summary()
-        plot_model(vae,
-                   to_file='vae_mlp.png',
-                   show_shapes=True)
-
 
         # train the autoencoder
         vae.fit(x_train,
