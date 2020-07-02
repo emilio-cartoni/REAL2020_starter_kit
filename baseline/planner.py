@@ -77,16 +77,6 @@ class Planner():
                 plt.savefig("planning_situation")
 
             elif config.abst['type'] == 'image':
-                if config.sim['render']:
-                    filtered_start = [] 
-                    for i in range(len(start)): 
-                        filtered_start += [[]] 
-                        for j in range(len(start[i])): 
-                            if np.all(start[i][j] == [178, 178, 204]): 
-                                filtered_start[i] += [np.array([255,255,255])] 
-                            else: 
-                                filtered_start[i] += [start[i][j]] 
-                    start = filtered_start
 
                 abstr_goal = np.average(self.abstractor.background_subtractor(goal),axis=2) != 0
                 abstr_start = np.average(self.abstractor.background_subtractor(start),axis=2)  != 0     

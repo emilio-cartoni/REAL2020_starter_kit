@@ -319,7 +319,6 @@ class Baseline(BasePolicy):
         #self.axes = axes
         self.action_space = action_space['macro_action']
         self.explorer = exp.RandomExploreAgent(self.action_space)
-        self.first_step = True
 
     def storeAction(self, actionData):
         '''
@@ -358,10 +357,6 @@ class Baseline(BasePolicy):
         Returns:
             (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t          
         '''
-        if self.first_step and config.sim['render']:
-            pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_SHADOWS,0)
-            self.first_step = False
-
         self.state, action, render = self.state.step(observation, reward, done)
 
         #print("DEBUG", action, render)

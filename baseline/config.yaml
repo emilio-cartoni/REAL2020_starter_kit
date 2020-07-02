@@ -14,4 +14,3 @@ simulation:
   save_images: true
   save_masks: false
   use_experience_data: true
-  render: true
