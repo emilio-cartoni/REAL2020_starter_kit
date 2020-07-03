@@ -81,18 +81,27 @@ You can specify your software environment by using all the [available configurat
 # How can I connect my system to competition?
 You can use local_evaluation.py that in base the input will evaluate your system.
 
-## Evaluate input
-- controller: agent class instance with the follow methods: start_intrinsic_phase, start_estrinsic_phase e step  
-- round: "R1" or "R2", which represent Round1 and Round2 of the competition respectevily 
-- actions type: "cartesian", "joints" or "macro_action"
-- total objects: n element of {1,2,3}
-- intrinsic phase steps: interger number 
-- estrinsic phase steps for each goal: interger number 
-- total goal: integer number
-- render: True if you want visualize the robot simulation
-- goal file path: string
+## Evaluation function parameters
+  - Controller: class  
+        An example controller which should expose a `step` function and be a subclass of BasePolicy
+  -  environment: string  
+        "R1" or "R2", which represent Round1 and Round2 of the competition respectively 
+  -  action_type: string
+        "cartesian", "joints" or "macro_action" (see parameter description below)
+  -  n_objects: int
+        number of objects on the table: 1, 2 or 3
+  -  intrinsic_timesteps: int  
+        Number of timesteps in the Intrinsic phase (default 15e6)
+  -  extrinsic_timesteps: int  
+        Number of timesteps in the Extrinsic phase (default 10e3)
+  -  extrinsic_trials: int  
+        Total number of trials in the extrinsic phase (default 50)
+  -  visualize: bool  
+        Boolean flag which enables or disables the visualization GUI when running the evaluation
+   - goals_dataset_path: str  
+        Path to a goals dataset
 
-### Input description
+### Parameters description
 Actions type:
 - 'macro_action': Numpy.ndarray([(x1,y1),(x2,y2)]), where (x1,y1) is the start point and (x2,y2) is the end point of the trajectory.
 - 'cartesian': Numpy.ndarray([x,y,z,o1,o2,o3,o4]), which it is the physics three dimensional space and the other points represent the gripper orientation.
