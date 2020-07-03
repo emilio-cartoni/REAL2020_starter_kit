@@ -116,15 +116,17 @@ It has also a step method that receives the current observation from the environ
       - observation is a dictionary with several keys. See also [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md).
         - joint_positions: array with the current joint angle positions
         - touch_sensors: array with touch sensor readings
-        - retina: it is a rgb image (dimension: 240x320x3) with view from above of the table that show also the robot arm.
-        - goal: it is the rgb image that represent the goal.          
+        - retina: RGB image (dimension: 240x320x3) of the table viewed from above (robot arm is also shown)  
+        - goal: RGB image of the goal state  
+          
         If the environment is "R1" (during Round 1), these additional observations are also provided in the same dictionary:
-        - object_positions: it is a dictionary with a key for each object on the table with associated the seven-dimensional position.
-        - goal_positions: it is the objects position desidered.
-        - mask: it is a filtered image (dimension: 240x320) with view from above of the table that show also the robot arm.
-        - goal_mask: it is the filtered image that represent the goal.
+        - object_positions: a dictionary with a key for each object on the table with associated position and orientation of the object  
+        - goal_positions: a dictionary with the goal position of each object  
+        - mask: a segmentation mask of the retina image where for each pixel there is an integer index that identifies which object is in that pixel 
+                (i.e. -1 is a background pixel, 0 is the robot, 1 is the table, etc)  
+        - goal_mask: a segmentation mask of the goal image  
       - reward is not used and is always 0
-      - done is true at the last timestep of the intrinsic and the extrinsic phase, false otherwise.
+      - done will be True when the intrisic phase ends or an extrinsic trial ends, otherwise it will always be False.
         
     - output: action
       - action is a dictionary with two keys:
