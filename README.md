@@ -86,7 +86,7 @@ You can use local_evaluation.py that in base the input will evaluate your system
         An example controller which should expose a `step` function and be a subclass of BasePolicy
   -  environment: string  
         "R1" or "R2", which represent Round1 and Round2 of the competition respectively 
-  -  action_type: string
+  -  action_type: string  
         "cartesian", "joints" or "macro_action" (see parameter description below)
   -  n_objects: int
         number of objects on the table: 1, 2 or 3
@@ -103,37 +103,45 @@ You can use local_evaluation.py that in base the input will evaluate your system
 
 ### Parameters description
 Actions type:
-- 'macro_action': Numpy.ndarray([(x1,y1),(x2,y2)]), where (x1,y1) is the start point and (x2,y2) is the end point of the trajectory.
-- 'cartesian': Numpy.ndarray([x,y,z,o1,o2,o3,o4]), which it is the physics three dimensional space and the other points represent the gripper orientation.
-- 'joints': Numpy.ndarray([x1,x2,x3,x4,x5,x6,x7,x8,x9]), where it represent the desidered position for each joint
+- 'macro_action': Numpy.ndarray([(x1,y1),(x2,y2)]), where (x1,y1) is the start point and (x2,y2) is the end point of the trajectory along the table.
+- 'cartesian': Numpy.ndarray([x,y,z,o1,o2,o3,o4]), where x,y,z is the desired position and o1,o2,o3,o4 is the desired orientation (quaternion) of the gripper.
+- 'joints': Numpy.ndarray([x1,x2,x3,x4,x5,x6,x7,x8,x9]), where each value represent the desidered angle position for each joint
 
 Controller class instance:
-It have to be a class with several methods which is called repetitively. These is explained in [policy.py](https://github.com/AIcrowd/real_robots/blob/master/real_robots/policy.py). Here we specified only step method:
+It has to be a subclass of BasePolicy, see [policy.py](https://github.com/AIcrowd/real_robots/blob/master/real_robots/policy.py).  
+Basepolicy has several methods that are called each at the start or the end of intrinsic and extrinsic phases and at the beginning and at the end of each trial.
+It has also a step method that receives the current observation from the environment and it should return the action to do next:
 - step:
     - input: observation, reward, done
-      - observation is a dictionary with several keys. Most are descripted in [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md) and the rest below:
+      - observation is a dictionary with several keys. See also [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md).
+        - joint_positions: array with the current joint angle positions
+        - touch_sensors: array with touch sensor readings
         - retina: it is a rgb image (dimension: 240x320x3) with view from above of the table that show also the robot arm.
+        - goal: it is the rgb image that represent the goal.          
+        If the environment is "R1" (during Round 1), these additional observations are also provided in the same dictionary:
         - object_positions: it is a dictionary with a key for each object on the table with associated the seven-dimensional position.
-        - mask: it is a filtered image (dimension: 240x320) with view from above of the table that show also the robot arm.
-        - goal: it is the rgb image that represent the goal.
         - goal_positions: it is the objects position desidered.
+        - mask: it is a filtered image (dimension: 240x320) with view from above of the table that show also the robot arm.
         - goal_mask: it is the filtered image that represent the goal.
+      - reward is not used and is always 0
+      - done is true at the last timestep of the intrinsic and the extrinsic phase, false otherwise.
+        
     - output: action
       - action is a dictionary with two keys:
         - action type: action
         - render: boolean\
-        The evaluate class pass the dictionary (example: {'macro_action': Numpy.ndarray([ [0.1 , 0.3] , [0.2 , 0.3] ]), 'render': True}) to environment that will execute the specified action and it showing the simulation
+        The evaluate class passes the dictionary (example: {'macro_action': Numpy.ndarray([ [0.1 , 0.3] , [0.2 , 0.3] ]), 'render': True}) to the environment that will execute the specified action and then return a new observation.
 
 
 
 # How do I can use simplifications?
 ## Actions space reduction:
-  - 'macro_action': it allows to reduce from joints space to four-dimensional space, where the four points (x1,y1,x2,y2) represent a trajectory on the table that starts from (x1,y1) and ends to (x2,y2).
-  - 'cartesian': it allows to reduce from joints space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the three-dimensional point in the space and the gripper orientation desidered. 
+  - 'macro_action': it allows to reduce the action space from the 9-dimensional joints space to a four-dimensional space, where the four values (x1,y1,x2,y2) represent a trajectory on the table that starts from (x1,y1) and ends to (x2,y2).
+  - 'cartesian': it allows to reduce the action space from the joints space to a seven-dimensional space, where the seven values (x,y,z,o1,o2,o3,o4) represent the three-dimensional point in the space plus the gripper desidered orientation. 
   
 ## Abstraction simplifications contained in the observations:
-  - coordinates: it allows to reduce from images space to seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the physics three dimensional space and the other points represent the object orientation.
-  - masks: it allows to reduce from images space to filtered images space, where a mask is an image that for each pixel has a integer number that let you know which object is in that pixel. (example: a cell with -1 represent the background pixel)
+  - coordinates: it allows to reduce from the image space (320x240x3) to a seven-dimensional space, where the seven points (x,y,z,o1,o2,o3,o4) represent the physics three dimensional space and the other points represent the object orientation.
+  - masks: it allows to reduce from images space to a filtered images space, where a mask is an image that for each pixel has a integer number that let you know which object is in that pixel. (example: a cell with -1 represent the background pixel)
 
 # What should my code structure be like ?
 
