@@ -49,3 +49,12 @@ The agent's behavior also depends on hyperparameters specified in the config.yam
    - save_masks: allows you to specify if you want the actions to contain in preconditions and postconditions the state mask, where a mask is a image that specify what object is content in each image pixel, rather than just the coordinates of the cube.
    - use_experience_data: allows you to specify if you want to use the file specified in "experience_data", or (if false) if you want to use the actions collected in the intrinsic phase just carried out
 
+# Experience data
+The transitions file can be downloaded from the following links:
+- with only the cube object: https://drive.google.com/file/d/1gtn-8F6-Nght9_8yiaoC03BDXkT86aeQ/view?usp=sharing
+- with the cube and tomato objects: https://drive.google.com/file/d/1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1/view?usp=sharing
+These can also be downloaded with wget command:
+- with only the cube object: wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1gtn-8F6-Nght9_8yiaoC03BDXkT86aeQ' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1gtn-8F6-Nght9_8yiaoC03BDXkT86aeQ" -O transitions_file.zip && rm -rf /tmp/cookies.txt
+- with the cube and tomato objects: wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1" -O double_objects.zip && rm -rf /tmp/cookies.txt
+
+**Attention -** Before that it can be used you need that extract npy file from zip file.
