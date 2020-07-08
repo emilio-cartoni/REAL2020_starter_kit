@@ -34,6 +34,7 @@ The Planner component has an instance of the abstraction tool available which wi
 The agent's behavior also depends on hyperparameters specified in the config.yaml file. These parameters are divided into 3 different categories: abstraction, planner and simulation. Below we explain their semantics:
  - Abstraction:
    - precision: allows to truncate the numbers contained in the vector representing the state of the world to the i-th digit after the comma.
+   - n_obj: allow to specify how many objects is present in the simulation
    - type: with the possible values ​​[pos, pos_noq, image, filtered_mask] allows you to specify if you want to use the position of the objects with quaternion, position of the objects without quaternion, world situation image and world situation mask respectively.
    - total_abstraction: allows you to specify how many equally distributed samples you want to take in the set of differences experienced between precondition and postcondition
    - percentage_of_actions_ignored_at_the_extremes: allows you to specify the percentage that you want to ignore at the extremes of the actions (sorted). This variable was made in such a way as to be able to eliminate the most unlikely actions to be performed.
