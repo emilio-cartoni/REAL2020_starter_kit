@@ -51,6 +51,11 @@ The agent's behavior also depends on hyperparameters specified in the config.yam
    - use_experience_data: allows you to specify if you want to use the file specified in "experience_data", or (if false) if you want to use the actions collected in the intrinsic phase just carried out
 
 # Experience data
+This npy file contains several numpy.ndarray consisting of three elements: 
+- pre condition: it is a triple contain the image, the coordinates and the mask which represented the world state before execute the action.  
+- action: it is the action executed to get the post condition
+- post condition: it is a triple contain the image, the coordinates and the mask which represented the world state after execute the action.  
+
 The transitions file can be downloaded from the following links:
 - with only the cube object: https://drive.google.com/file/d/1gtn-8F6-Nght9_8yiaoC03BDXkT86aeQ/view?usp=sharing
 - with the cube and tomato objects: https://drive.google.com/file/d/1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1/view?usp=sharing
