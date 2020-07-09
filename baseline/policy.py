@@ -393,8 +393,8 @@ class Baseline(BasePolicy):
         
         '''
         #print("Loading actions for planner...")
-
-        self.save("./{}".format(np.random.randint(0,10000)))  
+        fileID = np.random.randint(0,1000000)
+        self.save("./transitions_{}".format(fileID))
 
         allActions = self.allActions
         #print("I know {} actions.".format(len(allActions)))
