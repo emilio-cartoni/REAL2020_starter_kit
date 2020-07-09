@@ -1,6 +1,7 @@
 abstraction:
   precision: 8
   type: image
+  n_obj: 1
   total_abstraction: 200
   percentage_of_actions_ignored_at_the_extremes: 0.0
 planner:
@@ -9,7 +10,7 @@ planner:
   type: mega
   action_size: 1000
 simulation:
-  experience_data: 1762_15kRETINA.npy
+  experience_data: data/transitions_file.npy
   extrinsic_steps: 10000
   save_images: true
   save_masks: false

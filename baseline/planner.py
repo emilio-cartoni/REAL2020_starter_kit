@@ -67,17 +67,11 @@ class Planner():
                 abstr_start = self.abstractor.get_encoder().predict( np.reshape(start, [-1,len(start)*len(start[0])]))[0][0] 
                 self.axes[0].imshow(start)
                 self.axes[1].imshow(goal)
-                plt.savefig("planning_situation")
-
-            elif config.abst['type'] == 'mask':
-                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal, [-1,len(goal)*len(goal[0])]))[0][0]
-                abstr_start = self.abstractor.get_encoder().predict( np.reshape(start, [-1,len(start)*len(start[0])]))[0][0] 
-                self.axes[0].imshow(start)
-                self.axes[1].imshow(goal)
+                self.axes[0].set_title("Current situation")  
+                self.axes[1].set_title("Goal") 
                 plt.savefig("planning_situation")
 
             elif config.abst['type'] == 'image':
-
                 abstr_goal = np.average(self.abstractor.background_subtractor(goal),axis=2) != 0
                 abstr_start = np.average(self.abstractor.background_subtractor(start),axis=2)  != 0     
 

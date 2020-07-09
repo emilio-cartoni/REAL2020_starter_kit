@@ -90,7 +90,7 @@ class Abstractor():
         encoder (instance): function map from image to latent space
         dencoder (instance): function map from latent space to image 
     '''
-    def __init__(self, images):
+    def __init__(self, images, latent_dim):
 
         # reparameterization trick
         # instead of sampling from Q(z|X), sample epsilon = N(0,I)
@@ -120,20 +120,12 @@ class Abstractor():
         image_rows = x_train[0].shape[0] 
         image_columns = x_train[0].shape[1] 
         original_dim = image_rows * image_columns 
-        #if config.abst['type'] == 'image':
-            #original_dim *= 3
         x_train = np.reshape(x_train, [-1, original_dim]) 
         x_test = np.reshape(x_test, [-1, original_dim]) 
-        
-        if config.abst['type'] == 'mask':
-            maximum = np.max([np.max(mask) for mask in fl])
-            x_train = x_train.astype('float32') / maximum
-            x_test = x_test.astype('float32') / maximum
 
         input_shape = (original_dim, ) 
         intermediate_dim = 512
         batch_size = 128 
-        latent_dim = 7
         epochs = 30
 
         # VAE model = encoder + decoder
@@ -225,31 +217,10 @@ class DynamicAbstractor():
             return None         
         
         
-        if config.abst['type'] == 'mask':
-            masks = [action[2] for action in actions]
-            ab = Abstractor(masks)
-            self.encoder = ab.get_encoder()
 
-            self.actions = []
-            n_cells = len(actions[0][0])*len(actions[0][0][0])
-            z = 0
-            post = np.array(self.encoder.predict(np.reshape(actions[0][0],[-1,n_cells]))[0][0])
-            
-            reshaping = np.reshape(masks,[len(masks),len(masks[0])*len(masks[0][0])]) 
-            predictions = self.encoder.predict(reshaping)
-
-            for i in range(len(actions)):
-                              
-                pre = post
-                post = np.array(predictions[0][i])
-                self.actions += [np.array([pre,actions[i][1],post])]
-
-
-            print(self.actions[0])
-        
-        elif config.abst['type'] == 'filtered_mask':
+        if config.abst['type'] == 'filtered_mask':
             masks = [actions[i][2] for i in range(len(actions))]
-            ab = Abstractor(masks)
+            ab = Abstractor(masks, latent_dim=7*config.abst['n_obj'])
             self.encoder = ab.get_encoder()
 
             self.actions = []
@@ -272,11 +243,6 @@ class DynamicAbstractor():
         elif config.abst['type'] == 'image':
             images = [actions[i][2] for i in range(len(actions))]
             print("Total images {} for VAE and BS".format(len(images)))
-            
-            #check if images given in input is been sampled in render mode  
-            #if config.sim['render'] and images[0][0][0] != [178, 178, 204]:
-            #    print("The images isn't been collected in render mode!")
-            #    exit(0)
 
             cbsm = cv2.createBackgroundSubtractorMOG2(len(images)) 
             for i in range(len(images)): 
@@ -285,7 +251,7 @@ class DynamicAbstractor():
             self.background = cbsm.getBackgroundImage()
             images = np.average(abs(images - self.background),axis=3) != 0
             
-            ab = Abstractor(images)
+            ab = Abstractor(images, latent_dim=7*config.abst['n_obj'])
             self.encoder = ab.get_encoder()
 
             self.actions = []
