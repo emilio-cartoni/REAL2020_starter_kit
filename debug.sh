@@ -21,6 +21,6 @@ sudo docker run \
     --gpus all \
     --net=host \
     -v `pwd`/data:/DATASET:z \
-    -e AICROWD_DATASET_PATH=/DATASET/goals-REAL2020-s2020-50-1 \
+    -e AICROWD_DATASET_PATH=/DATASET/goals-REAL2020-s2020-50-1.npy.npz \
     -it ${IMAGE_NAME}:${IMAGE_TAG} \
     /home/aicrowd/run.sh
