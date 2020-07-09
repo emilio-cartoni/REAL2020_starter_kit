@@ -61,8 +61,8 @@ If save_images or save_masks are set to false in the config file, the corrispond
 **Attention -** Saving images and masks can lead to very large files (up to 7.6 GB for 15M timesteps intrinsic phase with both images and masks).
 
 Examples of an .npy file for a full 15M timestep intrinsic phase can be downloaded from the following links:
-- with only the cube object: https://drive.google.com/file/d/1gtn-8F6-Nght9_8yiaoC03BDXkT86aeQ/view?usp=sharing
-- with the cube and tomato objects: https://drive.google.com/file/d/1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1/view?usp=sharing
+- with only the cube object: [google drive link](https://drive.google.com/file/d/1gtn-8F6-Nght9_8yiaoC03BDXkT86aeQ/view?usp=sharing)
+- with the cube and tomato objects: [google drive link](https://drive.google.com/file/d/1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1/view?usp=sharing)
 
 These can also be downloaded with wget command:
 - with only the cube object:  
@@ -70,4 +70,4 @@ These can also be downloaded with wget command:
 - with the cube and tomato objects:  
 `wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1wGNgcJm8hn3C1uGsvwW7ojWxX0oO2si1" -O double_objects.zip && rm -rf /tmp/cookies.txt`
 
-**Attention -** Before the files can be used you need to extract the npy file from the zip file.
+**Attention -** Before the files can be used you need to extract in the data folder (contained in the main folder) the npy file from the zip file.
