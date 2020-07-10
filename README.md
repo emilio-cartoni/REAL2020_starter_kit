@@ -150,6 +150,15 @@ It has also a step method that receives the current observation from the environ
 Please follow the structure documented in the included [my_controller.py](https://github.com/AIcrowd/REAL2020_starter_kit/blob/master/my_controller.py) to adapt
 your already existing code to the required structure for this round.
 
+## Baseline
+The Baseline subfolder contains an implementation of a solution at the challenge that can be used to take confidence with the simulator and with the challenge in general. So we suggest of follow these steps: 
+1. Download the code
+2. Download the intrinsic phase file (transitions_file.zip) made available and described in the subfolder [baseline](https://github.com/emilio-cartoni/REAL2020_starter_kit/tree/master/baseline)
+3. Start a simulation with the active display (visualize = True in local_evaluation.py) to see how the system acts in the extrinsic phase
+4. Explore the description of the entire system and start editing the local code to see the effect of the changes
+5. Improve the baseline by making changes in one or more of the modules (Exploration, Abstraction, Planning)
+6. (Optional) Create your own new system from scratch.
+
 ## Important Concepts
 
 ### Repository Structure
