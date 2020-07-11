@@ -158,7 +158,7 @@ class Planner():
             s = s2.intersection(s1)
             
             for i in s:
-                node = nodeClass.Node(i, self.abstractor.get_dist(self.actions[i][2], goal_image), self.abstractor.get_dist  (self.actions[i][0], self.actions[i][2]), None)
+                node = nodeClass.Node(i, self.abstractor.get_dist(self.actions[i][2], goal_image), self.abstractor.get_dist(self.actions[i][0], self.actions[i][2]), None)
                 q.enqueue(node, node.get_value_plus_cost())
                 frontier.add(i)
 
@@ -174,6 +174,11 @@ class Planner():
 
             if node.get_attribute() in visited:
                 continue            
+
+            #Check if the current node is still at an allowable depth
+            if node.get_depth() == depth: 
+                frontier.remove(node.get_attribute())  
+                continue 
 
             #Check if the postcondition of the current node corresponds to the goal
             if np.all(abs(self.actions[node.get_attribute()][2] - goal_image) <= abstraction_dists) and node.get_value() < self.abstractor.get_dist(current, goal_image):
