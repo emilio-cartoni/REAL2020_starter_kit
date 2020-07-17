@@ -176,7 +176,7 @@ class Planner():
                 continue            
 
             #Check if the current node is still at an allowable depth
-            if node.get_depth() == depth: 
+            if node.get_depth() == depth+1: 
                 frontier.remove(node.get_attribute())  
                 continue 
 
