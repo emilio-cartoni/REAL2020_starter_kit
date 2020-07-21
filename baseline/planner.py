@@ -176,8 +176,12 @@ class Planner():
                 continue            
 
             #Check if the current node is still at an allowable depth
-            if node.get_depth() == depth: 
-                frontier.remove(node.get_attribute())  
+            if node.get_depth() == depth+1: 
+                frontier.remove(node.get_attribute()) 
+                while node.get_father() is not None:
+                    node = node.get_father()
+                    if node.get_attribute() in visited:
+                         visited.remove(node.get_attribute())  
                 continue 
 
             #Check if the postcondition of the current node corresponds to the goal
