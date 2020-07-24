@@ -2,16 +2,10 @@ import numpy as np
 from real_robots.policy import BasePolicy
 from baseline.planner import Planner
 from baseline.abstractor import currentAbstraction
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import os
 import baseline.config as config
 import baseline.explorer as exp
-from gym.spaces import Box
-import pybullet
-
-
+import matplotlib
+matplotlib.use('Agg')
 
 
 class State:
@@ -44,18 +38,18 @@ class DoAction(State):
         self.n_timesteps = 1000
         self.actionTimer = -1
         self.action = action
-    
+
     def step(self, observation, reward, done):
         '''
         It takes from the list of positions of the robotic arm the position to go to in the current step. In case the action is over, instantiate the goBackHome state
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position         
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position
         '''
         self.actionTimer += 1
         if self.actionTimer < self.n_timesteps:
@@ -70,7 +64,7 @@ class EndAction(State):
     This class represents the state in which the agent moves the robotic arm to the starting position
 
     Args:
-        
+
     Attributes:
     '''
 
@@ -79,12 +73,12 @@ class EndAction(State):
         It save the current action and it passes into the ActionStart state.
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position             
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position
         '''
         post_image = observation['retina'] if config.sim['save_images'] else None
         post_pos = observation['object_positions']
@@ -93,17 +87,10 @@ class EndAction(State):
         self.actionData += [post]
         self.caller.storeAction(self.actionData)
 
-        pre_exp = currentAbstraction(self.actionData[0])
-        action = np.vstack(self.actionData[1])
-        post_exp = currentAbstraction(post)
-
-
         State.actionData = []
 
         nextState = ActionStart()
         return nextState.step(observation, reward, done)
-
-      
 
 
 class ProposeNewAction(State):
@@ -123,32 +110,30 @@ class ProposeNewAction(State):
         self.point_1 = action[0]
         self.point_2 = action[1]
 
-        #print("Will go to {},{}".format(self.point_1, self.point_2))
+        # print("Will go to {},{}".format(self.point_1, self.point_2))
 
     def step(self, observation, reward, done):
         '''
         Generates the trajectory based on the two pre-generated points and returns a DoAction instance instantiated with the trajectory
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position             
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position
         '''
         pre_image = observation['retina'] if config.sim['save_images'] else None
         pre_pos = observation['object_positions']
         pre_mask = observation['mask'] if config.sim['save_masks'] else None
         pre_action = (pre_image, pre_pos, pre_mask)
 
-
         self.action = np.array([self.point_1, self.point_2])
 
         self.actionData += [pre_action, (self.point_1, self.point_2)]
         nextState = DoAction(self.action)
         return nextState.step(observation, reward, done)
-
 
 
 class ActionStart(State):
@@ -158,28 +143,28 @@ class ActionStart(State):
     Args:
 
     Attributes:
-    
+
     '''
     def step(self, observation, reward, done):
         '''
         Check if the goal is contained in the observations, if there was then it transit in the PlanAction status, otherwise it passes in the ProposeNewAction status
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t      
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t
         '''
-        #print("Now I will start another action..")
+        # print("Now I will start another action..")
         goal = observation['goal']
         if np.any(goal):
-            #print("... by planning for the goal.")
+            # print("... by planning for the goal.")
             nextState = PlanAction()
             return nextState.step(observation, reward, done)
         else:
-            #print("... without a goal.")
+            # print("... without a goal.")
             nextState = ProposeNewAction()
             return nextState.step(observation, reward, done)
 
@@ -191,7 +176,7 @@ class PlanAction(State):
     Args:
 
     Attributes:
-    
+
     '''
     def step(self, observation, reward, done):
         '''
@@ -199,12 +184,12 @@ class PlanAction(State):
         with the first action of the sequence, otherwise you wait for a new goal, or it try a random action depending on the config file
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t      
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t
         '''
         pre_image = observation['retina'] if config.sim['save_images'] else None
         pre_pos = observation['object_positions']
@@ -226,25 +211,26 @@ class PlanAction(State):
             return nextState.step(observation, reward, done)
         else:
             if config.plan['try_random']:
-                #print("Planning returned nothing, I will try something random...")
+                # print("Planning returned nothing, I will try something random...")
                 nextState = ProposeNewAction()
                 return nextState.step(observation, reward, done)
             else:
-                #print("Planning returned nothing, I will wait for next goal...")
+                # print("Planning returned nothing, I will wait for next goal...")
                 nextState = WaitForNewGoal(goal_abs)
-                return nextState.step(observation, reward, done)           
+                return nextState.step(observation, reward, done)
+
 
 class WaitForNewGoal():
     '''
     This class represent the state where the agent wait to have a new goal.
 
     Args:
-        observation (dict): dictionary of all the observations given by the environment 
+        observation (dict): dictionary of all the observations given by the environment
 
     Attributes:
         current_goal (numpy.ndarray): where the current goal is saved
         current_state (numpy.ndarray): where the current state of the world is saved
-        
+
     '''
     def __init__(self, goal_abs):
         self.current_goal = goal_abs
@@ -255,12 +241,12 @@ class WaitForNewGoal():
         If it is, then switches to the ActionStart state
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t           
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t
         '''
 
         pre_abs, goal_abs = self.getCurrentStateAndGoal(observation)
@@ -273,22 +259,22 @@ class WaitForNewGoal():
         nextState = ActionStart()
         return nextState.step(observation, reward, done)
 
-
     def getCurrentStateAndGoal(self, observation):
         '''
         Extrapolate the current state and the desired state of the world
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
 
         Returns:
-            current state, desidered state (numpy.ndarray,numpy.ndarray)           
+            current state, desidered state (numpy.ndarray,numpy.ndarray
         '''
         pre = (observation['retina'], observation['object_positions'], observation['mask'])
         goal = (observation['goal'], observation['goal_positions'], observation['goal_mask'])
         pre_abs = currentAbstraction(pre)
         goal_abs = currentAbstraction(goal)
         return pre_abs, goal_abs
+
 
 class Baseline(BasePolicy):
     '''
@@ -325,7 +311,7 @@ class Baseline(BasePolicy):
             actionData (tuple(numpy.ndarray,numpy.ndarray,numpy.ndarray)): the vectors represent precondition, action points and postcondition respectively
 
         Returns:
-        
+
         '''
         self.allActions += [actionData]
 
@@ -337,7 +323,7 @@ class Baseline(BasePolicy):
             fileName (string)
 
         Returns:
-        
+
         '''
         np.save(fileName, self.allActions)
 
@@ -346,12 +332,12 @@ class Baseline(BasePolicy):
         Calculate the maximum distance that can occur with probability p
 
         Args:
-            observation (dict): dictionary of all the observations given by the environment 
+            observation (dict): dictionary of all the observations given by the environment
             reward (float)
             done (boolean)
 
         Returns:
-            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t          
+            (State instance, joints position, bool): where bool is True only when the robotic arm is in the home position t
         '''
         self.state, action, render = self.state.step(observation, reward, done)
         return {'macro_action': action, 'render': render}
@@ -365,14 +351,14 @@ class Baseline(BasePolicy):
             pre_abs (numpy.ndarray): current state of the world
 
         Returns:
-            plan_sequence (list): list of actions planned by the planner          
+            plan_sequence (list): list of actions planned by the planner
         '''
         goalChanged = not(np.all(self.goal == goal_abs))
         self.goal = goal_abs
         no_sequence = len(self.plan_sequence) == 0
 
         if config.plan['replan'] or goalChanged or no_sequence:
-            #print("Invoking planner for new sequence..")
+            # print("Invoking planner for new sequence..")
             self.plan_sequence = self.planner.plan(goal_abs, pre_abs, alg=config.plan['type'])
         else:
             self.plan_sequence = self.plan_sequence[1:]
@@ -381,7 +367,6 @@ class Baseline(BasePolicy):
 
     def end_intrinsic_phase(self, observation, reward, done):
         self.step(observation, reward, done)
-        
 
     def start_extrinsic_phase(self):
         '''
@@ -390,26 +375,26 @@ class Baseline(BasePolicy):
         Args:
 
         Returns:
-        
+
         '''
-        #print("Loading actions for planner...")
-        fileID = np.random.randint(0,1000000)
+        # print("Loading actions for planner...")
+        fileID = np.random.randint(0, 1000000)
         self.save("./transitions_{}".format(fileID))
 
         allActions = self.allActions
-        #print("I know {} actions.".format(len(allActions)))
+        # print("I know {} actions.".format(len(allActions)))
 
         if config.sim['use_experience_data']:
             allActions = np.load(config.sim['experience_data'], allow_pickle=True)
-            #print("Loaded {} actions.".format(len(allActions)))
+            # print("Loaded {} actions.".format(len(allActions)))
 
         allAbstractedActions = [[currentAbstraction(a[0]), a[1], currentAbstraction(a[2])] for a in allActions]
 
-        #print("Initializing planner...")
+        # print("Initializing planner...")
         self.planner = Planner(allAbstractedActions)
         del allActions
         del allAbstractedActions
-        #print("Planner initalized.")
+        # print("Planner initalized.")
 
     def start_extrinsic_trial(self):
         self.state = ActionStart()
