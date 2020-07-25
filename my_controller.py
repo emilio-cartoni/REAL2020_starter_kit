@@ -1,9 +1,6 @@
-import gym
-import numpy as np
-import time
-import real_robots
 from real_robots.policy import BasePolicy
 from baseline.policy import Baseline
+
 
 class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
@@ -15,5 +12,5 @@ class RandomPolicy(BasePolicy):
         action['render'] = self.render
         return action
 
-#SubmittedPolicy=RandomPolicy
-SubmittedPolicy=Baseline
+# SubmittedPolicy=RandomPolicy
+SubmittedPolicy = Baseline

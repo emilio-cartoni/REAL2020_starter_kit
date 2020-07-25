@@ -18,23 +18,27 @@ if gpus:
         # Currently, memory growth needs to be the same across GPUs
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        logic_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs")
+        print(len(logic_gpus), "Logical GPUs")
     except RuntimeError as e:
         # Memory growth must be set before GPUs have been initialized
         print(e)
 
 
 def currentAbstraction(obs):
-    '''
-    Extract the coordinates from the input (observation) taking only x, y, z depending on the config file
+    """
+    Makes a first abstraction of the observation by returning a subset
+    of it (depending on config file).
 
-    Args:
-        obs (list): list of observations in different form (image, coordinates, mask)
+    Parameters
+    ----------
+        obs : list
+            observations received by the environment
 
     Returns:
         coordinates list (list)
-    '''
+    """
     if config.abst['type'] == 'pos':
         return abstractionFromPos(obs[1])
     elif config.abst['type'] == 'pos_noq':
@@ -48,59 +52,87 @@ def currentAbstraction(obs):
 
 
 def abstractionFromPos(pos_dict):
-    '''
+    """
     Extract the coordinates from the input
 
-    Args:
-        pos_dict (dictionary): dictionary = {object0:coords0,...,objectN:coordsN}
+    Parameters
+    ----------
+        pos_dict : dict
+            dictionary = {object0:coords0,...,objectN:coordsN}
 
     Returns:
-        coordinates list (list): [coords0,...,coordsN]
-    '''
-    abst = np.hstack([pos_dict[obj] for obj in ['cube', 'tomato', 'mustard'] if obj in pos_dict])
-    abst = np.round(abst, config.abst['precision'])
-    return abst
+        coordinates list : list
+            [coords0,...,coordsN]
+    """
+    abst = np.hstack([pos_dict[obj]
+                      for obj in ['cube', 'tomato', 'mustard']
+                      if obj in pos_dict])
+
+    abst_rounded = np.round(abst, config.abst['precision'])
+
+    return abst_rounded
 
 
 def abstractionFromPosNoQ(pos_dict):
-    '''
+    """
     Extract the coordinates from the input taking only x, y, z
 
-    Args:
-        pos_dict (dictionary): dictionary = {object0:coords0,...,objectN:coordsN}
+    Parameters
+    ----------
+        pos_dict : dict
+            dictionary = {object0:coords0,...,objectN:coordsN}
 
     Returns:
-        coordinates list (list): [coords0[:2],...,coordsN[:2]]
-    '''
-    abst = np.hstack([pos_dict[obj][:2] for obj in ['cube', 'tomato', 'mustard'] if obj in pos_dict])
-    abst = np.round(abst, config.abst['precision'])
-    return abst
+        coordinates list : list
+            [coords0[:2],...,coordsN[:2]]
+    """
+    abst = np.hstack([pos_dict[obj][:2]
+                      for obj in ['cube', 'tomato', 'mustard']
+                      if obj in pos_dict])
+
+    abst_rounded = np.round(abst, config.abst['precision'])
+
+    return abst_rounded
 
 
 class Abstractor():
-    '''
-    This class make a Variational Auto-Encoder (VAE) starting from images given in input.
+    """
+    This class uses a Variational Auto-Encoder (VAE) trained with the
+    images given in input.
 
-    Args:
-        images (list): images list
+    Parameters
+    ----------
+        images : list
+            images list to train the VAE
+        latent_dim : int
+            number of dimensions of the latent space
 
-    Attributes:
-        encoder (instance): function map from image to latent space
-        dencoder (instance): function map from latent space to image
-    '''
+    Attributes
+    ----------
+        encoder : function
+            function mapping from images to the latent space
+        decoder : function
+            function mappping from the latent space to images
+    """
     def __init__(self, images, latent_dim):
 
         # reparameterization trick
         # instead of sampling from Q(z|X), sample epsilon = N(0,I)
         # z = z_mean + sqrt(var) * epsilon
         def sampling(args):
-            """Reparameterization trick by sampling from an isotropic unit Gaussian.
+            """Reparameterization trick by sampling from
+               an isotropic unit Gaussian.
 
-            # Arguments
-                args (tensor): mean and log of variance of Q(z|X)
+            Parameters
+            ----------
+                args : tensor
+                    mean and log of variance of Q(z|X)
 
-            # Returns
-                z (tensor): sampled latent vector
+            Returns
+            -------
+                z : tensor
+                    sampled latent vector
+
             """
 
             z_mean, z_log_var = args
@@ -182,33 +214,54 @@ class Abstractor():
         return self.decoder
 
     def get_abstraction_from_binary_image(self, image):
-        return self.encoder.predict(np.reshape(image, [-1, len(image) * len(image[0])]))
+        return self.encoder.predict(np.reshape(image,
+                                    [-1, len(image) * len(image[0])]))
 
     def get_abstraction_from_mask(self, mask):
-        return self.encoder.predict(np.reshape(mask, [-1, len(mask) * len(mask[0])]))
+        return self.encoder.predict(np.reshape(mask,
+                                    [-1, len(mask) * len(mask[0])]))
 
 
 class DynamicAbstractor():
-    '''
-    This class extrapolate distance between states contained in the actions list and use it for collapse gradually always more states between themself
+    """
+    This class extrapolate distance between states contained in the
+    actions list and use it for collapse gradually always more states
+    between themself
 
-    Args:
-        actions (list): a list of (precondition, action, postcondition), where conditions are float lists
+    Parameters
+    ----------
+        actions : list
+            a list of (precondition, action, postcondition), where
+            conditions are float lists
 
-    Attributes:
-        actions (list): where the input actions are saved
-        dictionary_abstract_actions (dict): where abstract actions are saved. The keys will be the levels of abstraction and the values ​​will be the lists of abstract actions
-        lists_significative_differences (list): where significant distances are saved for each condition variable. These will be used to relax conditions.
-        encoder (instance): where the result of the making VAE are saved. It allow to pass from image to latent space that has several nice propriety. One of these is that
-                                what it can be used as a metric space.
-    '''
+    Attributes
+    ----------
+        actions : list
+            where the input actions are saved
+        dictionary_abstract_actions : dict
+            where abstract actions are saved. The keys will be the
+            levels of abstraction and the values will be the lists of
+            abstract actions
+        lists_significative_differences : list
+            where significant distances are saved for each condition
+            variable. These will be used to relax conditions.
+        encoder : instance
+            where the result of the making VAE are saved. It allow to
+            pass from image to latent space that has several nice
+            propriety. One of these is that what it can be used as a
+            metric space.
+
+    """
     def __init__(self, actions):
         if len(actions[0]) != 3:
-            print("Legal actions consist of (precondition,action,postcondition)")
+            print("Legal actions consist of \
+                  (precondition, action, postcondition)")
             return None
 
-        if not isinstance(actions[0][0], type(np.array([]))) or not isinstance(actions[0][2], type(np.array([]))):
-            print("Each conditions have to be numpy.ndarray")
+        if not isinstance(actions[0][0], type(np.array([]))) or \
+           not isinstance(actions[0][2], type(np.array([]))):
+
+            print("Each condition has to be a numpy.ndarray")
             return None
 
         if config.abst['type'] == 'filtered_mask':
@@ -218,9 +271,11 @@ class DynamicAbstractor():
 
             self.actions = []
             n_cells = len(actions[0][0]) * len(actions[0][0][0])
-            post = np.array(self.encoder.predict(np.reshape(actions[0][0], [-1, n_cells]))[0][0])
+            post = np.array(self.encoder.predict(np.reshape(actions[0][0],
+                                                 [-1, n_cells]))[0][0])
 
-            reshaping = np.reshape(masks, [len(masks), len(masks[0]) * len(masks[0][0])])
+            reshaping = np.reshape(masks, [len(masks),
+                                           len(masks[0]) * len(masks[0][0])])
             predictions = self.encoder.predict(reshaping)
 
             for i in range(len(actions)):
@@ -263,7 +318,8 @@ class DynamicAbstractor():
 
         self.dictionary_abstract_actions = {}
 
-        # For each variable in actions condition it add a list to put the significative differences
+        # For each variable in actions condition it add
+        # a list to put the significative differences
         condition_dimension = len(self.actions[0][0])
         self.lists_significative_differences = [[] for i in range(condition_dimension)]
 
@@ -282,28 +338,34 @@ class DynamicAbstractor():
                 self.lists_significative_differences[i] += [sup[int(j)]]
 
     def get_abstraction(self, abstraction_level):
-        '''
-        Calculate the vector representing the abstraction required as input in each variable
+        """
+        Calculate the vector representing the abstraction required as
+        input in each variable
 
-        Args:
-            abstraction_level (int)
+        Parameters
+        ----------
+            abstraction_level : int
 
         Returns:
-            distances (numpy.ndarray): where the i-th cell of the vector represents the input abstraction on the i-th variable
-        '''
+            distances : ndarray
+                where the i-th cell of the vector represents the input
+                abstraction on the i-th variable
+        """
         return np.array([self.lists_significative_differences[i][abstraction_level] for i in range(len(self.lists_significative_differences))])
 
     def get_dist(self, cond1, cond2):
-        '''
-        Calculate the amount of abstractions that distances the two input conditions
+        """
+        Calculate the amount of abstractions that distances the two
+        input conditions
 
-        Args:
-            cond1 (list of float)
-            cond2 (list of float)
+        Parameters
+        ----------
+            cond1 : list of float
+            cond2 : list of float
 
         Returns:
-            distance (float)
-        '''
+            distance : float
+        """
         return np.sum(abs(cond1 - cond2))
 
     def get_encoder(self):

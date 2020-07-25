@@ -7,22 +7,40 @@ import matplotlib.pyplot as plt
 
 
 class Planner():
-    '''
-    This class instantiate several data structure to aim to have a good planning. It use the abstractor class to make abstraction on the actions given in input.
-    The planning algorithm is a A*-like algorithm and the abstractor use the VAE to do abstraction.
+    """
+    This class instantiates several data structures for planning.
+    It use the abstractor class to make abstraction on the actions given
+    in input.
+    The planning algorithm is an A*-like algorithm and the abstractor
+    use a Variational Auto-Encoder to do abstraction.
 
-    Args:
-        actions (list): a list of actions with format (precondition, action, postcondition)
+    Parameters
+    ----------
+        actions : list
+            a list of actions with format
+            (precondition, action, postcondition)
 
-    Attributes:
-        actions (list): where the actions are saved
-        last_goal (numpy.ndarray): where the current goal is saved to intercept the moment when it changes
-        abstractor (DynamicAbstractor instance): this instance allows you to have the abstract actions to pass to the planner
-        actions_dicts (dict): where for each pair (i-th action, k-th level of abstraction) are saved all the actions with abstract precondition at the k-th
-                                level of abstraction compatible with the postcondition of the i-th abstract action at the k-th level of abstraction
-        pre_post_different_for_abstractions (dict): where a list is created for each level of abstraction that represents the actions that have precondition equal
-                                                        to the postcondition due to the abstraction
-    '''
+    Attributes
+    ----------
+        actions : list
+            where the actions are saved
+        last_goal : ndarray
+            where the current goal is saved to intercept the moment when
+            it changes
+        abstractor : DynamicAbstractor
+            this instance allows you to have the abstract actions to
+            pass to the planner
+        actions_dicts : dict
+            where for each pair (i-th action, k-th level of abstraction)
+            are saved all the actions with abstract precondition at the
+            k-th level of abstraction compatible with the postcondition
+            of the i-th abstract action at the k-th level of abstraction
+        pre_post_different_for_abstractions : dict
+            where a list is created for each level of abstraction that
+            represents the actions that have precondition equal to the
+            postcondition due to the abstraction
+
+    """
     def __init__(self, actions=None):
         self.abstractor = abstr.DynamicAbstractor(actions)
         self.actions = self.abstractor.actions
@@ -37,23 +55,41 @@ class Planner():
         self.axes = axes
 
     def plan(self, goal, start, actions=None, alg='mega'):
-        '''
-        The planning is executed in the following way: it use the abstractor to transform the actions in abstracted actions of level 1 (where level 1 is the least abstraction);
-        it try to find a sequence of actions which get the current state to goal state; if it find it, then return the sequence, else augment the abstraction level.
+        """
+        The planning is executed in the following way: it use the
+        abstractor to transform the actions in abstracted actions of
+        level 1 (where level 1 is the least abstraction);
+        it tries to find a sequence of actions which get the current
+        state to goal state; if it find it, then return the sequence,
+        else augment the abstraction level.
 
-        Args:
-            goal (numpy.ndarray): vector representing the desired state
-            start (numpy.ndarray): vector representing the current state
-            actions (float): a list of actions with format (precondition, action, postcondition)
+        Parameters
+        ----------
+            goal : ndarray
+                vector representing the desired state
+            start : ndarray
+                vector representing the current state
+            actions : float
+                a list of actions with format
+                (precondition, action, postcondition)
 
-        Attributes:
-            last_goal (np.ndarray): where the current goal is saved to allows the goal change detection
-            plan_size (int): maximum plan size
+        Attributes
+        ----------
+            last_goal : ndarray
+                where the current goal is saved to allows the goal
+                change detection
+            plan_size : int
+                maximum plan size
 
-        Returns:
-            sequence (list): actions list with format [(precondition, action, postcondition),...,(precondition, action, postcondition)] where the first action
-                                represents the current state and the last action the desired state
-        '''
+        Returns
+        -------
+            sequence : list
+                actions list with format [(precondition, action,
+                postcondition), ..., (precondition, action,
+                postcondition)] where the first action represents the
+                current state and the last action the desired state
+
+        """
         if alg == 'mega':
             if not np.all(self.last_goal == goal):
                 self.last_goal = goal
@@ -110,26 +146,47 @@ class Planner():
         raise NotImplementedError
 
     def forward_planning_with_prior_abstraction(self, goal_image, current, lev_abstr, depth):
-        '''
-        Forward planning algorithm divided into three steps: (1) It find all the actions have a precondition equal to the current state of the world and
-        it put them in the frontier set, (2) it add for each action in the frontier set the actions with precondition compatible with the postcondition of the
-        action in question, (3) when it find a condition like the goal condition in the frontier, it returns the sequence of correspondent actions
+        """
+        Forward planning algorithm divided into three steps:
+        (1) It find all the actions have a precondition equal to the
+            current state of the world and it put them in the frontier
+            set,
+        (2) it add for each action in the frontier set the actions with
+            precondition compatible with the postcondition of the action
+            in question,
+        (3) when it find a condition like the goal condition in the
+            frontier, it returns the sequence of correspondent actions
 
-        Args:
-            goal_image (numpy.ndarray): vector representing the desired abstract state at level lev_abstr
-            current (numpy.ndarray): vector representing the current abstract state at level 0 (to be precise)
-            actions (float): a list of actions with format (abstract precondition, action, abstract postcondition)
-            lev_abstr (int): abstraction level
-            depth (int): maximum sequence length
+        Parameters
+        ----------
+            goal_image -: ndarray
+                vector representing the desired abstract state at
+                level lev_abstr
+            current : ndarray
+                vector representing the current abstract state at
+                level 0 (to be precise)
+            actions : float
+                a list of actions with format (abstract precondition,
+                action, abstract postcondition)
+            lev_abstr : int
+                abstraction level
+            depth : int
+                maximum sequence length
 
-        Returns:
-            sequence (numpy.ndarray): a list of actions with format [(precondition, action, postcondition),...,(precondition, action, postcondition)] where the first action
-            represents the current state and the last action the desired state
-        '''
+        Returns
+        -------
+            sequence - ndarray
+                a list of actions with format [(precondition, action,
+                postcondition),...,(precondition, action,
+                postcondition)] where the first action represents the
+                current state and the last action the desired state
+
+        """
 
         abstraction_dists = self.abstractor.get_abstraction(lev_abstr)
 
-        # checks whether the current condition is the same as the desired condition in the current abstraction
+        # checks whether the current condition is the same as the
+        # desired condition in the current abstraction
         if np.all(abs(goal_image - current) <= abstraction_dists):
             return None
 
@@ -141,15 +198,18 @@ class Planner():
         post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions, 2, axis=1))) - goal_image) <= abstraction_dists, axis=1))[0]
         s1 = set(self.pre_post_different_for_abstractions[lev_abstr])
         s2 = set(post_goal_equals_for_abstractions)
-        # It takes actions with a precondition other than postcondition in current abstraction
+        # It takes actions with a precondition other than
+        # postcondition in current abstraction
         s = s1.intersection(s2)
 
         if list(s):
-            # It takes actions with precondition equal to the current condition in current abstraction
+            # It takes actions with precondition equal to the
+            # current condition in current abstraction
 
             pre_current_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions, 0, axis=1))) - current) <= abstraction_dists, axis=1))[0]
             s2 = set(pre_current_equals_for_abstractions)
-            # It takes actions with a precondition other than postcondition in current abstraction
+            # It takes actions with a precondition other than
+            # postcondition in current abstraction
             s = s2.intersection(s1)
 
             for i in s:
@@ -165,7 +225,8 @@ class Planner():
                 # print("Visited actions: {} Ready actions in queue: {}".format(len(visited), len(frontier)))
                 pass
 
-            # It takes the node with less distance traveled + distance from the goal
+            # It takes the node with
+            # less distance traveled + distance from the goal
             node, value = q.dequeue()
 
             if node.get_attribute() in visited:
@@ -180,7 +241,8 @@ class Planner():
                         visited.remove(node.get_attribute())
                 continue
 
-            # Check if the postcondition of the current node corresponds to the goal
+            # Check if the postcondition of the current node
+            # corresponds to the goal
             if np.all(abs(self.actions[node.get_attribute()][2] - goal_image) <= abstraction_dists) and node.get_value() < self.abstractor.get_dist(current, goal_image):
                 frontier.remove(node.get_attribute())
                 visited.add(node.get_attribute())
@@ -206,7 +268,9 @@ class Planner():
 
             actions_set = actions_list.difference(visited)
 
-            # Create list of (i,action), where i represent i-th action in self.actions and action the triple (precondition, trajectory points, postcondition)
+            # Create list of (i,action), where i represent i-th action in
+            # self.actions and action the triple
+            # (precondition, trajectory points, postcondition)
             f = lambda i: (i, self.actions[i])
             l2 = map(f, actions_set)
 
@@ -219,8 +283,9 @@ class Planner():
                     q.enqueue(node1, node1.get_value_plus_cost())
                     frontier.add(a)
 
-                # In case the node was in the border, therefore still not expanded and has a higher value of the child node than the current one,
-                # then it is replaced in the queue with it
+                # In case the node was in the border, therefore still not
+                # expanded and has a higher value of the child node than the
+                # current one, then it is replaced in the queue with it
                 elif a in frontier:
                     node1 = nodeClass.Node(a, self.abstractor.get_dist(post1, goal_image), self.abstractor.get_dist(pre1, post1), node)
                     q.replace_if_better(node1, node1.get_value_plus_cost())

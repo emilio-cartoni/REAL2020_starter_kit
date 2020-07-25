@@ -45,7 +45,8 @@ class PriorityQueue(object):
         else:
             for i in range(len(self.queue)):
                 if self.queue[i][0] == data and self.queue[i][1] > value:
-                    self.queue = self.queue[:i] + [(data, value)] + self.queue[i + 1:]
+                    self.queue = self.queue[:i] + [(data, value)] \
+                                 + self.queue[i + 1:]
                     return True
             return False
 
