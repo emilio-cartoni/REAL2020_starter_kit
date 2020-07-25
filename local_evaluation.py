@@ -11,9 +11,9 @@ result, detailed_scores = real_robots.evaluate(
                 environment='R1',
                 action_type='macro_action',
                 n_objects=1,
-                intrinsic_timesteps=15e3,
+                intrinsic_timesteps=15e6,
                 extrinsic_timesteps=10e3,
-                extrinsic_trials=3,
+                extrinsic_trials=50,
                 visualize=False,
                 goals_dataset_path=DATASET_PATH
             )
