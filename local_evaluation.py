@@ -3,14 +3,19 @@ import real_robots
 from my_controller import SubmittedPolicy
 import os
 
-DATASET_PATH = os.getenv("AICROWD_DATASET_PATH",
-                         "./data/goals-REAL2020-s2020-25-15-10-1.npy.npz")
+#########################################################
+### Please specify the action_type and n_objects here ###
+###     These will be used during your evaluation     ###
+#########################################################
+EVALUATION_ACTION_TYPE = 'macro_action'
+EVALUATION_N_OBJECTS = 1
+DATASET_PATH = "./data/goals-REAL2020-s2020-25-15-10-%s.npy.npz" % EVALUATION_N_OBJECTS
 
 result, detailed_scores = real_robots.evaluate(
                 SubmittedPolicy,
                 environment='R1',
-                action_type='macro_action',
-                n_objects=1,
+                action_type=EVALUATION_ACTION_TYPE,
+                n_objects=EVALUATION_N_OBJECTS,
                 intrinsic_timesteps=15e6,
                 extrinsic_timesteps=10e3,
                 extrinsic_trials=50,
