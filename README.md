@@ -168,8 +168,8 @@ The Baseline subfolder contains an implementation of a solution at the challenge
 
 ```json
 {
-  "challenge_id": "real-robots-2020",
-  "grader_id": "real-robots-2020",
+  "challenge_id": "goal_real_robots_challenge_2020",
+  "grader_id": "goal_real_robots_challenge_2020",
   "authors": ["mohanty"],
   "description": "Robot open-Ended Autonomous Learning 2020 (REAL2020) Challenge.",
   "license" : "MIT",
