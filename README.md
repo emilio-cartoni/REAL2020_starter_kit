@@ -19,7 +19,7 @@ During Round 1 and Round 2 only the Extrinsic Phase will be run on the evaluator
 
 ```
 git clone git@github.com:AIcrowd/REAL2020_starter_kit.git
-cd REAL2020_starter_kit.git
+cd REAL2020_starter_kit
 ```
 
 * Create a conda environment from the provided `environment.yml`
@@ -181,7 +181,7 @@ The Baseline subfolder contains an implementation of a solution at the challenge
 This is used to map your submission to the said challenge, so please remember to use the correct `challenge_id` and `grader_id` as specified above.
 
 If you set `debug` to `true`, then the evaluation will run on a separate set of 20 environments, and the logs from your submitted code (if it fails), will be made available to you to help you debug.
-**NOTE** : **IMPORTANT** : By default we have set `debug:false`, so when you have done the basic integration testing of your code, and are ready to make a final submission, please do make sure to set `debug` to `true` in `aicrowd.json`.
+**NOTE** : **IMPORTANT** : By default we have set `debug:true`, so when you have done the basic integration testing of your code, and are ready to make a final submission, please do make sure to set `debug` to `false` in `aicrowd.json`.
 
 - `my_controller.py`
   The task is to implement your own controller my following the template provided in `my_controller.py`.
@@ -199,7 +199,7 @@ Then you can create a submission by making a _tag push_ to your repository on [h
 Then you can add the correct git remote, and finally submit by doing :
 
 ```
-cd neurips_goal_real_robots_starter_kit
+cd REAL2020_starter_kit
 # Add AIcrowd git remote endpoint
 git remote add aicrowd git@gitlab.aicrowd.com:<YOUR_AICROWD_USER_NAME>/REAL2020_starter_kit.git
 git push aicrowd master
@@ -214,7 +214,7 @@ git push aicrowd submission-v0.1
 ```
 
 You now should be able to see the details of your submission at :
-[https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/REAL2020_starter_kit/issues](https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/neurips_goal_real_robots_starter_kit/issues)
+[https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/REAL2020_starter_kit/issues](https://gitlab.aicrowd.com/<YOUR_AICROWD_USER_NAME>/REAL2020_starter_kit/issues)
 
 **NOTE**: Remember to update your username in the link above :wink:
 
