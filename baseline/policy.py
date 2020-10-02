@@ -46,7 +46,7 @@ class DoAction(State):
 
    """
     def __init__(self, action):
-        self.n_timesteps = 1000
+        self.n_timesteps = config.plan['action_size']
         self.actionTimer = -1
         self.action = action
 

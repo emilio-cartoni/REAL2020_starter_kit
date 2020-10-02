@@ -9,15 +9,15 @@ import os
 #########################################################
 EVALUATION_ACTION_TYPE = 'macro_action'
 EVALUATION_N_OBJECTS = 1
-DATASET_PATH = "./data/goals-REAL2020-s2020-25-15-10-%s.npy.npz" % EVALUATION_N_OBJECTS
+DATASET_PATH = "./data/allGoalsPyRep.npy.npz"
 
 result, detailed_scores = real_robots.evaluate(
                 SubmittedPolicy,
-                environment='R1',
+                environment='PyRep',
                 action_type=EVALUATION_ACTION_TYPE,
                 n_objects=EVALUATION_N_OBJECTS,
-                intrinsic_timesteps=15e6,
-                extrinsic_timesteps=10e3,
+                intrinsic_timesteps=1500,
+                extrinsic_timesteps=10,
                 extrinsic_trials=50,
                 visualize=False,
                 goals_dataset_path=DATASET_PATH
