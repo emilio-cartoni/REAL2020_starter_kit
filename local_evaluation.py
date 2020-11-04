@@ -9,7 +9,7 @@ import os
 #########################################################
 EVALUATION_ACTION_TYPE = 'macro_action'
 EVALUATION_N_OBJECTS = 1
-DATASET_PATH = "./data/allGoalsPyRep.npy.npz"
+DATASET_PATH = "./data/allGoalsPyRepROS.npy.npz"
 
 result, detailed_scores = real_robots.evaluate(
                 SubmittedPolicy,
