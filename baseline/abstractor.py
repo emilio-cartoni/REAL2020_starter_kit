@@ -115,7 +115,7 @@ class VAEAbstractor():
         decoder : function
             function mappping from the latent space to images
     """
-    def __init__(self, images, latent_dim):
+    def __init__(self, images, latent_dim, retrain=False):
 
         # reparameterization trick
         # instead of sampling from Q(z|X), sample epsilon = N(0,I)
@@ -145,7 +145,7 @@ class VAEAbstractor():
 
         fl = images
 
-        if config.abst['pre_trained_vae']:
+        if config.abst['pre_trained_vae'] and not retrain:
             # load a pre-trained auto-encoder
             self.encoder = keras.models.load_model('trained_encoder')
             self.decoder = keras.models.load_model('trained_decoder')
