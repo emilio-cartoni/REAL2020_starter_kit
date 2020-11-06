@@ -95,7 +95,7 @@ def abstractionFromPosNoQ(pos_dict):
     return abst_rounded
 
 
-class Abstractor():
+class VAEAbstractor():
     """
     This class uses a Variational Auto-Encoder (VAE) trained with the
     images given in input.
@@ -144,68 +144,77 @@ class Abstractor():
 
         fl = images
 
-        x_train = fl[:int(np.floor(len(fl) * 0.80))]
-        x_test = fl[int(np.ceil(len(fl) * 0.80)):]
-        image_rows = x_train[0].shape[0]
-        image_columns = x_train[0].shape[1]
-        original_dim = image_rows * image_columns
-        x_train = np.reshape(x_train, [-1, original_dim])
-        x_test = np.reshape(x_test, [-1, original_dim])
-
-        input_shape = (original_dim, )
-        intermediate_dim = 512
-        batch_size = 128
-        epochs = 30
-
-        # VAE model = encoder + decoder
-        # build encoder model
-        inputs = Input(shape=input_shape, name='encoder_input')
-        x = Dense(intermediate_dim, activation='relu')(inputs)
-        z_mean = Dense(latent_dim, name='z_mean')(x)
-        z_log_var = Dense(latent_dim, name='z_log_var')(x)
-
-        # use reparameterization trick to push the sampling out as input
-        # note that "output_shape" isn't necessary with the TensorFlow backend
-        z = Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
-
-        # instantiate encoder model
-        self.encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
-        self.encoder.summary()
-
-        # build decoder model
-        latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
-        x = Dense(intermediate_dim, activation='relu')(latent_inputs)
-        outputs = Dense(original_dim, activation='sigmoid')(x)
-
-        # instantiate decoder model
-        self.decoder = Model(latent_inputs, outputs, name='decoder')
-        self.decoder.summary()
-
-        # instantiate VAE model
-        outputs = self.decoder(self.encoder(inputs)[2])
-        vae = Model(inputs, outputs, name='vae_mlp')
-
-        # VAE loss = mse_loss or xent_loss + kl_loss
-        if False:
-            reconstruction_loss = mse(inputs, outputs)
+        if config.abst['pre_trained_vae']:
+            # load a pre-trained auto-encoder
+            self.encoder = Model.load_model('trained_encoder')
+            self.decoder = Model.load_model('trained_decoder')
         else:
-            reconstruction_loss = binary_crossentropy(inputs,
-                                                      outputs)
+            x_train = fl[:int(np.floor(len(fl) * 0.80))]
+            x_test = fl[int(np.ceil(len(fl) * 0.80)):]
+            image_rows = x_train[0].shape[0]
+            image_columns = x_train[0].shape[1]
+            original_dim = image_rows * image_columns
+            x_train = np.reshape(x_train, [-1, original_dim])
+            x_test = np.reshape(x_test, [-1, original_dim])
 
-        reconstruction_loss *= original_dim
-        kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
-        kl_loss = K.sum(kl_loss, axis=-1)
-        kl_loss *= -0.5
-        vae_loss = K.mean(reconstruction_loss + kl_loss)
-        vae.add_loss(vae_loss)
-        vae.compile(optimizer='adam')
-        vae.summary()
+            input_shape = (original_dim, )
+            intermediate_dim = 512
+            batch_size = 128
+            epochs = 30
 
-        # train the autoencoder
-        vae.fit(x_train,
-                epochs=epochs,
-                batch_size=batch_size,
-                validation_data=(x_test, None))
+            # VAE model = encoder + decoder
+            # build encoder model
+            inputs = Input(shape=input_shape, name='encoder_input')
+            x = Dense(intermediate_dim, activation='relu')(inputs)
+            z_mean = Dense(latent_dim, name='z_mean')(x)
+            z_log_var = Dense(latent_dim, name='z_log_var')(x)
+
+            # use reparameterization trick to push the sampling out as input
+            # note that "output_shape" isn't necessary with the TensorFlow backend
+            z = Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
+
+            # instantiate encoder model
+            self.encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+            self.encoder.summary()
+
+            # build decoder model
+            latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
+            x = Dense(intermediate_dim, activation='relu')(latent_inputs)
+            outputs = Dense(original_dim, activation='sigmoid')(x)
+
+            # instantiate decoder model
+            self.decoder = Model(latent_inputs, outputs, name='decoder')
+            self.decoder.summary()
+
+            # instantiate VAE model
+            outputs = self.decoder(self.encoder(inputs)[2])
+            vae = Model(inputs, outputs, name='vae_mlp')
+
+            # VAE loss = mse_loss or xent_loss + kl_loss
+            if False:
+                reconstruction_loss = mse(inputs, outputs)
+            else:
+                reconstruction_loss = binary_crossentropy(inputs,
+                                                          outputs)
+
+            reconstruction_loss *= original_dim
+            kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
+            kl_loss = K.sum(kl_loss, axis=-1)
+            kl_loss *= -0.5
+            vae_loss = K.mean(reconstruction_loss + kl_loss)
+            vae.add_loss(vae_loss)
+            vae.compile(optimizer='adam')
+            vae.summary()
+
+            # train the autoencoder
+            vae.fit(x_train,
+                    epochs=epochs,
+                    batch_size=batch_size,
+                    validation_data=(x_test, None))
+
+            encoder.save('trained_encoder')
+            decoder.save('trained_decoder')
+
 
     def get_encoder(self):
         return self.encoder
@@ -266,7 +275,7 @@ class DynamicAbstractor():
 
         if config.abst['type'] == 'filtered_mask':
             masks = [actions[i][2] for i in range(len(actions))]
-            ab = Abstractor(masks, latent_dim=7 * config.abst['n_obj'])
+            ab = VAEAbstractor(masks, latent_dim=7 * config.abst['n_obj'])
             self.encoder = ab.get_encoder()
 
             self.actions = []
@@ -296,7 +305,7 @@ class DynamicAbstractor():
             self.background = cbsm.getBackgroundImage()
             images = np.average(abs(images - self.background), axis=3) != 0
 
-            ab = Abstractor(images, latent_dim=7 * config.abst['n_obj'])
+            ab = VAEAbstractor(images, latent_dim=7 * config.abst['n_obj'])
             self.encoder = ab.get_encoder()
 
             self.actions = []

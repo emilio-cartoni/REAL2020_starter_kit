@@ -4,14 +4,15 @@ abstraction:
   n_obj: 1
   total_abstraction: 200
   percentage_of_actions_ignored_at_the_extremes: 0.0
+  pre_trained_vae: false
 planner:
   replan: true
   try_random: false
   type: mega
   action_size: 1
 simulation:
-  experience_data: data/transitions_file.npy
+  experience_data: transitions_433581_15000.npy
   extrinsic_steps: 10
   save_images: true
   save_masks: false
-  use_experience_data: false
+  use_experience_data: true
