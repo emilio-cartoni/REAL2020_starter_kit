@@ -16,11 +16,12 @@ result, detailed_scores = real_robots.evaluate(
                 environment='PyRep',
                 action_type=EVALUATION_ACTION_TYPE,
                 n_objects=EVALUATION_N_OBJECTS,
-                intrinsic_timesteps=15000,
+                intrinsic_timesteps=0,
                 extrinsic_timesteps=10,
                 extrinsic_trials=50,
                 visualize=False,
                 goals_dataset_path=DATASET_PATH
+#                , selected_goals=[4, 8]
             )
 
 print(result)
