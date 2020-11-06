@@ -5,6 +5,7 @@ from tensorflow.keras.layers import Lambda, Input, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.losses import mse, binary_crossentropy
 from tensorflow.keras import backend as K
+from tensorflow import keras
 import numpy as np
 import baseline.config as config
 import baseline.priorityQueue as pq
@@ -146,8 +147,8 @@ class VAEAbstractor():
 
         if config.abst['pre_trained_vae']:
             # load a pre-trained auto-encoder
-            self.encoder = Model.load_model('trained_encoder')
-            self.decoder = Model.load_model('trained_decoder')
+            self.encoder = keras.models.load_model('trained_encoder')
+            self.decoder = keras.models.load_model('trained_decoder')
         else:
             x_train = fl[:int(np.floor(len(fl) * 0.80))]
             x_test = fl[int(np.ceil(len(fl) * 0.80)):]
@@ -212,8 +213,8 @@ class VAEAbstractor():
                     batch_size=batch_size,
                     validation_data=(x_test, None))
 
-            encoder.save('trained_encoder')
-            decoder.save('trained_decoder')
+            self.encoder.save('trained_encoder')
+            self.decoder.save('trained_decoder')
 
 
     def get_encoder(self):
