@@ -46,7 +46,7 @@ class DoAction(State):
 
    """
     def __init__(self, action):
-        self.n_timesteps = 1000
+        self.n_timesteps = config.plan['action_size']
         self.actionTimer = -1
         self.action = action
 
@@ -77,6 +77,8 @@ class DoAction(State):
 
         """
         self.actionTimer += 1
+        if self.actionTimer < (self.n_timesteps - 100):
+            return self, None, False
         if self.actionTimer < self.n_timesteps:
             render = self.actionTimer == (self.n_timesteps - 1)
             return self, self.action, render
@@ -116,10 +118,11 @@ class EndAction(State):
                 render flag
 
         """
-        post_pos = observation['object_positions']
+        post_pos = None
         post_image = None
         post_mask = None
-
+        if config.sim['save_positions']:
+            post_pos = observation['object_positions']
         if config.sim['save_images']:
             post_image = observation['retina']
         if config.sim['save_masks']:
@@ -168,10 +171,11 @@ class ProposeNewAction(State):
 
         """
 
-        pre_pos = observation['object_positions']
+        pre_pos = None
         pre_image = None
         pre_mask = None
-
+        if config.sim['save_positions']:
+            pre_pos = observation['object_positions']
         if config.sim['save_images']:
             pre_image = observation['retina']
         if config.sim['save_masks']:
@@ -261,10 +265,11 @@ class PlanAction(State):
 
         """
 
-        pre_pos = observation['object_positions']
+        pre_pos = None
         pre_image = None
         pre_mask = None
-
+        if config.sim['save_positions']:
+            pre_pos = observation['object_positions']
         if config.sim['save_images']:
             pre_image = observation['retina']
         if config.sim['save_masks']:
@@ -272,8 +277,7 @@ class PlanAction(State):
 
         pre = (pre_image, pre_pos, pre_mask)
 
-        goal = (observation['goal'], observation['goal_positions'],
-                observation['goal_mask'])
+        goal = (observation['goal'], None, None)
 
         pre_abs = currentAbstraction(pre)
         goal_abs = currentAbstraction(goal)
@@ -291,7 +295,7 @@ class PlanAction(State):
                 nextState = ProposeNewAction()
                 return nextState.step(observation, reward, done)
             else:
-                nextState = WaitForNewGoal(goal_abs)
+                nextState = WaitForNewGoal(observation['goal'])
                 return nextState.step(observation, reward, done)
 
 
@@ -302,7 +306,7 @@ class WaitForNewGoal():
     Parameters
     ----------
         goal_abs : ndarray
-            The current abstracted goal.
+            The current goal.
 
     Attributes
     ----------
@@ -338,41 +342,15 @@ class WaitForNewGoal():
                 render flag
 
         """
-        _, goal_abs = self.getCurrentStateAndGoal(observation)
+        goal = observation['goal']
 
-        sameGoal = np.all(goal_abs == self.current_goal)
+        sameGoal = np.all(goal == self.current_goal)
 
         if sameGoal:
             return self, None, False
 
         nextState = ActionStart()
         return nextState.step(observation, reward, done)
-
-    def getCurrentStateAndGoal(self, observation):
-        """
-        Get the current state and the desired state of the world
-
-        Parameters
-        ----------
-            observation : dict
-                observations received by the environment
-
-        Returns
-        -------
-            pre_abs : ndarray
-                current state, abstracted
-            goal_abs : ndarray
-                current goal, abstracted
-
-        """
-        pre = (observation['retina'], observation['object_positions'],
-               observation['mask'])
-        goal = (observation['goal'], observation['goal_positions'],
-                observation['goal_mask'])
-        pre_abs = currentAbstraction(pre)
-        goal_abs = currentAbstraction(goal)
-        return pre_abs, goal_abs
-
 
 class Baseline(BasePolicy):
     """
@@ -405,7 +383,8 @@ class Baseline(BasePolicy):
         self.planner = None
         self.goal = None
         self.plan_sequence = []
-        action_parameter_space = action_space['macro_action']
+        self.action_type = list(action_space.spaces.keys())[0]
+        action_parameter_space = action_space[self.action_type]
         self.explorer = exp.RandomExploreAgent(action_parameter_space)
 
     def storeAction(self, actionData):
@@ -462,7 +441,7 @@ class Baseline(BasePolicy):
 
         """
         self.state, action, render = self.state.step(observation, reward, done)
-        return {'macro_action': action, 'render': render}
+        return {self.action_type: action, 'render': render}
 
     def plan(self, goal_abs, pre_abs):
         """
