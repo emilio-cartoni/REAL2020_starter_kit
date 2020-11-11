@@ -8,7 +8,10 @@ planner:
   replan: true
   try_random: false
   type: mega
-  action_size: 500
+exploration:
+  action_size: 1000
+  action_parts_max: 10
+  home_duration: 150
 simulation:
   experience_data: data/transitions_file.npy
   extrinsic_steps: 10000

@@ -46,7 +46,7 @@ class DoAction(State):
 
    """
     def __init__(self, action):
-        self.n_timesteps = config.plan['action_size']
+        self.n_timesteps = config.exp['action_size']
         self.actionTimer = -1
         self.action = action
 
@@ -77,11 +77,13 @@ class DoAction(State):
 
         """
         self.actionTimer += 1
-        if self.actionTimer < (self.n_timesteps - 100):
-            return self, None, False
         if self.actionTimer < self.n_timesteps:
             render = self.actionTimer == (self.n_timesteps - 1)
-            return self, self.action, render
+            if config.exp['action_parts_max'] > 1:
+                current_action = self.action[self.actionTimer - 1]
+            else:
+                current_action = self.action
+            return self, current_action, render
         else:
             nextState = EndAction()
             return nextState.step(observation, reward, done)
@@ -285,9 +287,7 @@ class PlanAction(State):
 
         if len(plan) > 0:
             action = plan[0][1]
-            self.actionData += [pre, (action[0], action[1])]
-
-            action = np.array([action[0], action[1]])
+            self.actionData += [pre, action]
             nextState = DoAction(action)
             return nextState.step(observation, reward, done)
         else:
