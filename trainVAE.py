@@ -20,5 +20,5 @@ if __name__ == "__main__":
         cbsm.apply(images[i])
     background = cbsm.getBackgroundImage()
     images = np.average(abs(images - background), axis=3) != 0
-    ab = VAEAbstractor(images, latent_dim=7 * config.abst['n_obj'])
+    ab = VAEAbstractor(images, latent_dim=7 * config.abst['n_obj'], retrain=True)
 
