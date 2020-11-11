@@ -21,7 +21,7 @@ result, detailed_scores = real_robots.evaluate(
                 extrinsic_trials=50,
                 visualize=False,
                 goals_dataset_path=DATASET_PATH
-#                , selected_goals=[4, 8]
+                , selected_goals=[1, 4, 6, 7, 8, 10, 15, 18]
             )
 
 print(result)

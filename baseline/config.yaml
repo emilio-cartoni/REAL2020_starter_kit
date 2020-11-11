@@ -11,7 +11,7 @@ planner:
   type: mega
   action_size: 1
 simulation:
-  experience_data: transitions_433581_15000.npy
+  experience_data: transitions_121034.npy
   extrinsic_steps: 10
   save_images: true
   save_masks: false

@@ -423,7 +423,7 @@ class Baseline(BasePolicy):
 
         """
         self.allActions += [actionData]
-        if len(self.allActions) % 7500 == 0:
+        if len(self.allActions) % 5010 == 0:
             fileID = np.random.randint(0, 1000000)
             self.save("./transitions_{}_{}".format(fileID, len(self.allActions)))
 
