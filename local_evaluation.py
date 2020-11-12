@@ -1,7 +1,7 @@
 import numpy as np
 import real_robots
 from my_controller import SubmittedPolicy
-import os
+from interval import interval
 
 #########################################################
 ### Please specify the action_type and n_objects here ###
@@ -21,6 +21,7 @@ result, detailed_scores = real_robots.evaluate(
                 extrinsic_trials=50,
                 visualize=False,
                 goals_dataset_path=DATASET_PATH
+                , video = (True, True, True)
             )
 
 print(result)
