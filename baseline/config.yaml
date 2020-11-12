@@ -4,6 +4,7 @@ abstraction:
   n_obj: 1
   total_abstraction: 200
   percentage_of_actions_ignored_at_the_extremes: 0.0
+  pre_trained_vae: false
 planner:
   replan: true
   try_random: false
