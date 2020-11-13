@@ -1,10 +1,18 @@
 import baseline.node as nodeClass
-import baseline.priorityQueue as pqClass
+from queue import PriorityQueue
 import numpy as np
 import baseline.abstractor as abstr
 import baseline.config as config
 import matplotlib.pyplot as plt
 
+def plotPositions(ax, positions):
+    x1 = (positions[0][0] + 1.2) / 0.3 * 80 + 40
+    y1 = positions[0][1] / 1.25 * 320 + 168
+    x2 = (positions[1][0] + 1.2) / 0.3 * 80 + 40
+    y2 = positions[1][1] / 1.25 * 320 + 168
+    ax.scatter([y1], [x1])
+    ax.plot([y1, y2], [x1, x2])
+    
 
 class Planner():
     """
@@ -50,9 +58,16 @@ class Planner():
         self.actions_dicts = {}
         self.pre_post_different_for_abstractions = {}
 
-        fig, axes = plt.subplots(1, 2)
+        fig, axes = plt.subplots(1, 4)
         self.fig = fig
         self.axes = axes
+        plt.figure()
+        fig2, axes2 = plt.subplots(2, 5, frameon=False)
+          #fig.set_size_inches(w,h)
+        self.fig2 = fig2
+        self.axes2 = axes2
+        for ax in axes2.flatten():
+            ax.set_axis_off()
 
     def plan(self, goal, start, actions=None, alg='mega'):
         """
@@ -97,31 +112,25 @@ class Planner():
             else:
                 self.plan_size -= 1
 
-            if config.abst['type'] == 'filtered_mask':
-                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(goal, [-1, len(goal) * len(goal[0])]))[0][0]
-                abstr_start = self.abstractor.get_encoder().predict(np.reshape(start, [-1, len(start) * len(start[0])]))[0][0]
-                self.axes[0].imshow(start)
-                self.axes[1].imshow(goal)
-                self.axes[0].set_title("Current situation")
-                self.axes[1].set_title("Goal")
-                plt.savefig("planning_situation")
+            fore_goal = self.abstractor.background_subtractor(goal)
+            fore_start = self.abstractor.background_subtractor(start)
 
-            elif config.abst['type'] == 'image':
-                abstr_goal = np.average(self.abstractor.background_subtractor(goal), axis=2) != 0
-                abstr_start = np.average(self.abstractor.background_subtractor(start), axis=2) != 0
+            abstr_goal = self.abstractor.get_encoder().predict(np.reshape(fore_goal, [-1, len(goal) * len(goal[0])]))[0][0]
+            abstr_start = self.abstractor.get_encoder().predict(np.reshape(fore_start, [-1, len(start) * len(start[0])]))[0][0]
 
-                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(abstr_goal, [-1, len(goal) * len(goal[0])]))[0][0]
-                abstr_start = self.abstractor.get_encoder().predict(np.reshape(abstr_start, [-1, len(start) * len(start[0])]))[0][0]
+            print("ABS START:", abstr_start)
+            print("ABS GOAL:", abstr_goal)
+            print("Abs dist:", np.linalg.norm(abstr_goal -  abstr_start))
 
-                self.axes[0].imshow(start)
-                self.axes[1].imshow(goal)
-                self.axes[0].set_title("Current situation")
-                self.axes[1].set_title("Goal")
-                plt.savefig("planning_situation")
-
-            else:
-                abstr_goal = goal
-                abstr_start = start
+            self.axes[0].imshow(start)
+            self.axes[1].imshow(goal)
+            self.axes[2].imshow(fore_start)
+            self.axes[3].imshow(fore_goal)
+            self.axes[0].set_title("Current situation")
+            self.axes[1].set_title("Goal")
+            self.axes[0].set_title("Current situation - bg")
+            self.axes[1].set_title("Goal - bg")
+            self.fig.savefig("planning_situation")
 
             plan = []
             for abstraction_level in range(config.abst['total_abstraction']):
@@ -135,6 +144,23 @@ class Planner():
                 plan = self.forward_planning_with_prior_abstraction(abstr_goal, abstr_start, abstraction_level, self.plan_size)
 
                 if plan:
+                    print("Plan obtained with Abstr.level:", abstraction_level, self.abstractor.get_abstraction(abstraction_level))
+                    print(self.plan_size, len(plan))
+                    for ax in self.axes2.flatten():
+                        ax.clear()
+                    for s, step in enumerate(plan):
+                        print(s, step[0], step[0].shape)
+                        if s > 9:
+                            break
+                        before = self.abstractor.get_decoder().predict(step[0].reshape(1,7)).reshape(240,320)
+                        after = self.abstractor.get_decoder().predict(step[2].reshape(1,7)).reshape(240,320)
+                        rgb = np.dstack([before, np.zeros((240, 320)), after])
+                        self.axes2[int(s / 5), int((s % 5))].imshow(rgb)
+                        plotPositions(self.axes2[int(s / 5), int((s % 5))], step[1])
+
+
+                    self.fig2.savefig("current plan")
+                    assert(self.plan_size >= len(plan))
                     return plan
 
             if not plan:
@@ -192,7 +218,7 @@ class Planner():
 
         # Initialize two priority queues. The first for nodes with a sequence less than the allowed depth, the second for nodes blocked due to having exceeded the depth limit
         # This allows you to restore the search tree in the event that a solution with depth less than that allowed is not found
-        q = pqClass.PriorityQueue()
+        q = PriorityQueue()
 
         frontier = set()
         post_goal_equals_for_abstractions = np.where(np.all(abs(np.array(list(np.take(self.actions, 2, axis=1))) - goal_image) <= abstraction_dists, axis=1))[0]
@@ -214,20 +240,23 @@ class Planner():
 
             for i in s:
                 node = nodeClass.Node(i, self.abstractor.get_dist(self.actions[i][2], goal_image), self.abstractor.get_dist(self.actions[i][0], self.actions[i][2]), None)
-                q.enqueue(node, node.get_value_plus_cost())
+                q.put((node.get_value_plus_cost(), node))
+                assert(type(node.get_value_plus_cost()) == np.float32)
                 frontier.add(i)
+
+            
 
         # print("Add {} initial states".format(len(frontier)))
 
         visited = set()
-        while not q.is_empty():
+        while not q.empty():
             if len(visited) % 100 == 0 or len(visited) == 0:
                 # print("Visited actions: {} Ready actions in queue: {}".format(len(visited), len(frontier)))
                 pass
 
             # It takes the node with
             # less distance traveled + distance from the goal
-            node, value = q.dequeue()
+            value, node = q.get()
 
             if node.get_attribute() in visited:
                 continue
@@ -279,25 +308,30 @@ class Planner():
                 post1 = action[2]
 
                 if not a in visited and not a in frontier:
-                    node1 = nodeClass.Node(a, self.abstractor.get_dist(post1, goal_image), self.abstractor.get_dist(pre1, post1), node)
-                    q.enqueue(node1, node1.get_value_plus_cost())
-                    frontier.add(a)
+                    if node.get_depth() < depth:
+                        node1 = nodeClass.Node(a, self.abstractor.get_dist(post1, goal_image), self.abstractor.get_dist(pre1, post1), node)
+                        q.put((node1.get_value_plus_cost(), node1))
+                        assert(type(node1.get_value_plus_cost()) == np.float32)
+                        frontier.add(a)
 
                 # In case the node was in the border, therefore still not
                 # expanded and has a higher value of the child node than the
                 # current one, then it is replaced in the queue with it
                 elif a in frontier:
-                    node1 = nodeClass.Node(a, self.abstractor.get_dist(post1, goal_image), self.abstractor.get_dist(pre1, post1), node)
-                    q.replace_if_better(node1, node1.get_value_plus_cost())
+                    if node.get_depth() < depth:
+                        node1 = nodeClass.Node(a, self.abstractor.get_dist(post1, goal_image), self.abstractor.get_dist(pre1, post1), node)
+                        q.put((node1.get_value_plus_cost(), node1))
+                        assert(type(node1.get_value_plus_cost()) == np.float32)
 
         sequence = []
-        if not visited or node is None or q.is_empty():
+        if not visited or node is None or q.empty():
             return sequence
 
-        if node is not None and not q.is_empty():
+        if node is not None and not q.empty():
+            print("N", node)
             while node.get_father() is not None:
-                sequence += [[self.actions[node.get_attribute()][0], self.actions[node.get_attribute()][1], self.actions[node.get_attribute()][2]]] + sequence
+                sequence = [[self.actions[node.get_attribute()][0], self.actions[node.get_attribute()][1], self.actions[node.get_attribute()][2]]] + sequence
                 node = node.get_father()
+                print("N", node)
             sequence = [[self.actions[node.get_attribute()][0], self.actions[node.get_attribute()][1], self.actions[node.get_attribute()][2]]] + sequence
-
         return sequence

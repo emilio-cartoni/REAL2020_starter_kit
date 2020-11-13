@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class PriorityQueue(object):
     def __init__(self):
         self.queue = []

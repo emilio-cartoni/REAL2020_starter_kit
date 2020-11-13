@@ -10,6 +10,7 @@ import numpy as np
 import baseline.config as config
 import baseline.priorityQueue as pq
 import cv2
+import matplotlib.pyplot as plt
 
 # Set memory growth
 import tensorflow as tf
@@ -274,57 +275,36 @@ class DynamicAbstractor():
             print("Each condition has to be a numpy.ndarray")
             return None
 
-        if config.abst['type'] == 'filtered_mask':
-            masks = [actions[i][2] for i in range(len(actions))]
-            ab = VAEAbstractor(masks, latent_dim=7 * config.abst['n_obj'])
-            self.encoder = ab.get_encoder()
+        images = [actions[i][2] for i in range(len(actions))]
+        print("Total images {} for VAE and BS".format(len(images)))
 
-            self.actions = []
-            n_cells = len(actions[0][0]) * len(actions[0][0][0])
-            post = np.array(self.encoder.predict(np.reshape(actions[0][0],
-                                                 [-1, n_cells]))[0][0])
+        cbsm = cv2.createBackgroundSubtractorMOG2(len(images))
+        for i in np.random.permutation(len(images)):
+            cbsm.apply(images[i])
 
-            reshaping = np.reshape(masks, [len(masks),
-                                           len(masks[0]) * len(masks[0][0])])
-            predictions = self.encoder.predict(reshaping)
+        self.cbsm = cbsm
+        background = cbsm.getBackgroundImage()
+        plt.imsave('bgabstractor.png', background)
 
-            for i in range(len(actions)):
-                pre = post
-                post = np.array(predictions[0][i])
-                self.actions += [np.array([pre, actions[i][1], post])]
+        images = [self.background_subtractor(image) for image in images]
 
-            print(self.actions[0])
+        ab = VAEAbstractor(images, latent_dim=7 * config.abst['n_obj'])
+        self.encoder = ab.get_encoder()
+        self.decoder = ab.get_decoder()
 
-        elif config.abst['type'] == 'image':
-            images = [actions[i][2] for i in range(len(actions))]
-            print("Total images {} for VAE and BS".format(len(images)))
+        self.actions = []
+        n_cells = len(actions[0][0]) * len(actions[0][0][0])
 
-            cbsm = cv2.createBackgroundSubtractorMOG2(len(images))
-            for i in range(len(images)):
-                cbsm.apply(images[i])
+        post = np.array(self.encoder.predict(np.reshape(self.background_subtractor(actions[0][0]), [-1, n_cells]))[0][0])
 
-            self.background = cbsm.getBackgroundImage()
-            images = np.average(abs(images - self.background), axis=3) != 0
+        reshaping = np.reshape(images, [len(images), len(images[0]) * len(images[0][0])])
+        predictions = self.encoder.predict(reshaping)
 
-            ab = VAEAbstractor(images, latent_dim=7 * config.abst['n_obj'])
-            self.encoder = ab.get_encoder()
-
-            self.actions = []
-            n_cells = len(actions[0][0]) * len(actions[0][0][0])
-
-            post = np.array(self.encoder.predict(np.reshape(np.average(abs(actions[0][0] - self.background), axis=2) != 0, [-1, n_cells]))[0][0])
-
-            reshaping = np.reshape(images, [len(images), len(images[0]) * len(images[0][0])])
-            predictions = self.encoder.predict(reshaping)
-
-            for i in range(len(actions)):
-                pre = post
-                post = np.array(predictions[0][i])
-                self.actions += [np.array([pre, actions[i][1], post])]
-            print(self.actions[0])
-
-        else:
-            self.actions = actions
+        for i in range(len(actions)):
+            pre = post
+            post = np.array(predictions[0][i])
+            self.actions += [np.array([pre, actions[i][1], post])]
+        print(self.actions[0])
 
         self.dictionary_abstract_actions = {}
 
@@ -381,5 +361,9 @@ class DynamicAbstractor():
     def get_encoder(self):
         return self.encoder
 
+    def get_decoder(self):
+        return self.decoder
+
     def background_subtractor(self, img):
-        return abs(img - self.background)
+        #return abs(img - self.background)
+        return self.cbsm.apply(img, learningRate=0) / 255
