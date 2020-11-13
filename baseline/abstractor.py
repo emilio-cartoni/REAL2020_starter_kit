@@ -168,7 +168,7 @@ class VAEAbstractor():
             inputs = Input(shape=input_shape, name='encoder_input')
             x = Dense(intermediate_dim, activation='relu')(inputs)
             z_mean = Dense(latent_dim, name='z_mean')(x)
-            z_log_var = Dense(latent_dim, name='z_log_var')(x)
+            z_log_var = Dense(latent_dim, name='z_log_var', kernel_initializer='zeros')(x)
 
             # use reparameterization trick to push the sampling out as input
             # note that "output_shape" isn't necessary with the TensorFlow backend
