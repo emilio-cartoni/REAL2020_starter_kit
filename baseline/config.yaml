@@ -11,8 +11,8 @@ planner:
   type: mega
 exploration:
   action_size: 1000
-  action_parts_max: 10
-  home_duration: 150
+  action_parts_max: 1
+  home_duration: 0
 simulation:
   experience_data: data/transitions_file.npy
   extrinsic_steps: 10000

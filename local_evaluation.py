@@ -7,13 +7,13 @@ from interval import interval
 ### Please specify the action_type and n_objects here ###
 ###     These will be used during your evaluation     ###
 #########################################################
-EVALUATION_ACTION_TYPE = 'joints'
+EVALUATION_ACTION_TYPE = 'macro_action'
 EVALUATION_N_OBJECTS = 1
 DATASET_PATH = "./data/goals-REAL2020-s2020-25-15-10-%s.npy.npz" % EVALUATION_N_OBJECTS
 
 result, detailed_scores = real_robots.evaluate(
                 SubmittedPolicy,
-                environment='R2',
+                environment='R1',
                 action_type=EVALUATION_ACTION_TYPE,
                 n_objects=EVALUATION_N_OBJECTS,
                 intrinsic_timesteps=15e6,
