@@ -495,6 +495,18 @@ class Baseline(BasePolicy):
             allActions = np.load(config.sim['experience_data'],
                                  allow_pickle=True)
 
+
+        # filter actions where the arm moved
+        firstRow = allActions[0][0][0][0,:]
+
+        def validAction(action):
+            ok_pre = np.all(action[0][0][0, :] == firstRow)
+            ok_post = np.all(action[2][0][0, :] == firstRow)
+            return ok_pre and ok_post
+
+        allActions = [action in allActions if validAction(action)]
+
+
         allAbstractedActions = [[currentAbstraction(a[0]), a[1],
                                  currentAbstraction(a[2])]
                                 for a in allActions]
