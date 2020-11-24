@@ -276,12 +276,11 @@ class DynamicAbstractor():
         images = [actions[i][2] for i in range(len(actions))]
         print("Total images {} for VAE and BS".format(len(images)))
 
-        cbsm = cv2.createBackgroundSubtractorMOG2(len(images))
+        self.cbsm = cv2.createBackgroundSubtractorMOG2(len(images))
         for i in range(len(images)):
-            cbsm.apply(images[i])
+            self.cbsm.apply(images[i])
 
-        self.background = cbsm.getBackgroundImage()
-        images = np.average(abs(images - self.background), axis=3) != 0
+        images = [self.background_subtractor(img) for img in images]
 
         ab = VAEAbstractor(images, latent_dim=7 * config.abst['n_obj'])
         self.encoder = ab.get_encoder()
@@ -290,7 +289,7 @@ class DynamicAbstractor():
         self.actions = []
         n_cells = len(actions[0][0]) * len(actions[0][0][0])
 
-        post = np.array(self.encoder.predict(np.reshape(np.average(abs(actions[0][0] - self.background), axis=2) != 0, [-1, n_cells]))[0][0])
+        post = np.array(self.encoder.predict(np.reshape(self.background_subtractor(actions[0][0]), [-1, n_cells]))[0][0])
 
         reshaping = np.reshape(images, [len(images), len(images[0]) * len(images[0][0])])
         predictions = self.encoder.predict(reshaping)
@@ -357,4 +356,4 @@ class DynamicAbstractor():
         return self.encoder
 
     def background_subtractor(self, img):
-        return abs(img - self.background)
+        return self.cbsm.apply(img, learningRate=0) != 0

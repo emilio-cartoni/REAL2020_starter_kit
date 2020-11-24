@@ -107,11 +107,11 @@ class Planner():
                 plt.savefig("planning_situation")
 
             elif config.abst['type'] == 'image':
-                abstr_goal = np.average(self.abstractor.background_subtractor(goal), axis=2) != 0
-                abstr_start = np.average(self.abstractor.background_subtractor(start), axis=2) != 0
+                fore_goal = self.abstractor.background_subtractor(goal)
+                fore_start = self.abstractor.background_subtractor(start)
 
-                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(abstr_goal, [-1, len(goal) * len(goal[0])]))[0][0]
-                abstr_start = self.abstractor.get_encoder().predict(np.reshape(abstr_start, [-1, len(start) * len(start[0])]))[0][0]
+                abstr_goal = self.abstractor.get_encoder().predict(np.reshape(fore_goal, [-1, len(goal) * len(goal[0])]))[0][0]
+                abstr_start = self.abstractor.get_encoder().predict(np.reshape(fore_start, [-1, len(start) * len(start[0])]))[0][0]
 
                 self.axes[0].imshow(start)
                 self.axes[1].imshow(goal)
