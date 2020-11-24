@@ -504,7 +504,7 @@ class Baseline(BasePolicy):
             ok_post = np.all(action[2][0][0, :] == firstRow)
             return ok_pre and ok_post
 
-        allActions = [action in allActions if validAction(action)]
+        allActions = [action for action in allActions if validAction(action)]
 
 
         allAbstractedActions = [[currentAbstraction(a[0]), a[1],
