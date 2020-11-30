@@ -188,7 +188,7 @@ class Planner():
         # checks whether the current condition is the same as the
         # desired condition in the current abstraction
         if np.all(abs(goal_image - current) <= abstraction_dists):
-            return None
+            return [None]
 
         # Initialize two priority queues. The first for nodes with a sequence less than the allowed depth, the second for nodes blocked due to having exceeded the depth limit
         # This allows you to restore the search tree in the event that a solution with depth less than that allowed is not found
