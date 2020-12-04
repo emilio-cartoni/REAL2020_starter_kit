@@ -496,7 +496,7 @@ class Baseline(BasePolicy):
                                  allow_pickle=True)
 
 
-        # filter actions where the arm moved
+        # filter actions where the arm did not go back home
         firstRow = allActions[0][0][0][0,:]
 
         def validAction(action):
