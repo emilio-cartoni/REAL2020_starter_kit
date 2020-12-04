@@ -414,7 +414,10 @@ class Baseline(BasePolicy):
                 name of the file
 
         """
-        np.save(fileName, self.allActions)
+        if config.sim['compressed_data']:
+            np.savez_compressed(fileName, self.allActions)
+        else:
+            np.save(fileName, self.allActions)
 
     def step(self, observation, reward, done):
         """
@@ -492,8 +495,12 @@ class Baseline(BasePolicy):
         allActions = self.allActions
 
         if config.sim['use_experience_data']:
-            allActions = np.load(config.sim['experience_data'],
-                                 allow_pickle=True)
+            if config.sim['compressed_data']:
+                allActions = np.load(config.sim['experience_data'],
+                                     allow_pickle=True)['arr_0']
+            else:
+                allActions = np.load(config.sim['experience_data'],
+                                     allow_pickle=True)
 
 
         # filter actions where the arm did not go back home
