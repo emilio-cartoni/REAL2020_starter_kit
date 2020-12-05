@@ -17,7 +17,7 @@ class PriorityQueue(object):
         'Add a new data or update the priority of an existing data'
         count = next(self.counter)
         entry = [value, count, data]
-        self.entry_finder[data.get_attribute()] = entry
+        self.entry_finder[data] = entry
         heappush(self.pq, entry)
 
     def enqueue_with_replace(self, data, value):
@@ -26,12 +26,12 @@ class PriorityQueue(object):
             self.remove_data(data)
         count = next(self.counter)
         entry = [value, count, data]
-        self.entry_finder[data.get_attribute()] = entry
+        self.entry_finder[data] = entry
         heappush(self.pq, entry)
 
     def remove_data(self, data):
         'Mark an existing data as REMOVED.  Raise KeyError if not found.'
-        entry = self.entry_finder.pop(data.get_attribute())
+        entry = self.entry_finder.pop(data)
         entry[-1] = self.REMOVED
 
     def dequeue(self):
@@ -39,7 +39,7 @@ class PriorityQueue(object):
         while self.pq:
             priority, count, data = heappop(self.pq)
             if data is not self.REMOVED:
-                del self.entry_finder[data.get_attribute()]
+                del self.entry_finder[data]
                 return data, priority
         raise KeyError('pop from an empty priority queue')
 
@@ -56,14 +56,14 @@ class PriorityQueue(object):
         if self.is_empty():
             return False
         else:
-            if data.get_attribute() in self.entry_finder:
-                entry = self.entry_finder[data.get_attribute()]
+            if data in self.entry_finder:
+                entry = self.entry_finder[data]
                 if entry[0] > value:
                     self.remove_data(data)
                 else:
                     return False
             count = next(self.counter)
             entry = [value, count, data]
-            self.entry_finder[data.get_attribute()] = entry
+            self.entry_finder[data] = entry
             heappush(self.pq, entry)
             return True
