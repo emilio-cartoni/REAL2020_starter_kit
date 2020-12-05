@@ -8,7 +8,7 @@ from tensorflow.keras import backend as K
 from tensorflow import keras
 import numpy as np
 import baseline.config as config
-import baseline.priorityQueue as pq
+from heapq import heappush
 import cv2
 
 # Set memory growth
@@ -307,17 +307,22 @@ class DynamicAbstractor():
         condition_dimension = len(self.actions[0][0])
         self.lists_significative_differences = [[] for i in range(condition_dimension)]
 
-        ordered_differences_queues = [pq.PriorityQueue() for i in range(condition_dimension)]
+        ordered_differences_queues = [[] for i in range(condition_dimension)]
 
         differences = abs(np.take(self.actions, 0, axis=1) - np.take(self.actions, 2, axis=1))
         for i in range(condition_dimension):
             for j in range(len(self.actions)):
-                ordered_differences_queues[i].enqueue(None, differences[j][i])
+                ordered_differences_queues[i] += [differences[j][i]]
+
+        for i in range(condition_dimension):
+            ordered_differences_queues[i].sort()
+            print("DEBUG", len(ordered_differences_queues[i]))
+            print("DEBUG2", ordered_differences_queues[i][:6])
 
         actions_to_remove = int(np.floor(len(self.actions) * config.abst['percentage_of_actions_ignored_at_the_extremes']))
 
         for i in range(condition_dimension):
-            sup = ordered_differences_queues[i].get_queue_values()
+            sup = ordered_differences_queues[i]
             for j in np.linspace(actions_to_remove, len(self.actions) - 1 - actions_to_remove, config.abst['total_abstraction']).round(0):
                 self.lists_significative_differences[i] += [sup[int(j)]]
 
