@@ -8,7 +8,6 @@ from tensorflow.keras import backend as K
 from tensorflow import keras
 import numpy as np
 import baseline.config as config
-from heapq import heappush
 import cv2
 
 # Set memory growth
@@ -316,8 +315,6 @@ class DynamicAbstractor():
 
         for i in range(condition_dimension):
             ordered_differences_queues[i].sort()
-            print("DEBUG", len(ordered_differences_queues[i]))
-            print("DEBUG2", ordered_differences_queues[i][:6])
 
         actions_to_remove = int(np.floor(len(self.actions) * config.abst['percentage_of_actions_ignored_at_the_extremes']))
 
