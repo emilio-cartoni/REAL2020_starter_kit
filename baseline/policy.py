@@ -79,7 +79,7 @@ class DoAction(State):
         self.actionTimer += 1
         if self.actionTimer < self.n_timesteps:
             render = self.actionTimer == (self.n_timesteps - 1)
-            if config.exp['action_parts_max'] > 1:
+            if config.exp['action_parts_max'] > 1 and self.action is not None:
                 current_action = self.action[self.actionTimer - 1]
             else:
                 current_action = self.action
