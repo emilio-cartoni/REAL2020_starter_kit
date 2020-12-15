@@ -61,16 +61,16 @@ If save_images or save_masks are set to false in the config file, the corrispond
 **Attention -** Saving images and masks can lead to very large files (up to 7.6 GB for 15M timesteps intrinsic phase with both images and masks).
 
 Examples of an .npy file for a full 15M timestep intrinsic phase can be downloaded from the following links:
-- macro_action with only the cube object: [google drive link](https://drive.google.com/file/d/1Sf9bSYftixq732ZijzNvHh6UA6OMyYlt/view?usp=sharing)
-- macro_action with the cube and tomato objects: [google drive link](https://drive.google.com/file/d/1AZuAQQr2IE6JU2SoCMS0PO69o1wQ1c_L/view?usp=sharing)
-- joint with only the cube object: [google drive link](https://drive.google.com/file/d/12j-RzgnnGDDsuWO58uAcaM_h_2xj9cxE/view?usp=sharing)
+- macro_action with only the cube object: [google drive link](https://drive.google.com/file/d/1o4KV1VPLdI0rxRTAFhmRMrFGdph1M8J-/view?usp=sharing)
+- macro_action with the cube and tomato objects: [google drive link](https://drive.google.com/file/d/1CsBWzcbPGndsNV2wJBoikK6fG6szz2vm/view?usp=sharing)
+- joint with only the cube object: [google drive link](https://drive.google.com/file/d/1GPb49NNpLwqgnPvFr2rWjgm_k-Te-VqN/view?usp=sharing)
 
 These can also be downloaded with wget command:
 - macro_action with only the cube object:  
-`wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1Sf9bSYftixq732ZijzNvHh6UA6OMyYlt' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1Sf9bSYftixq732ZijzNvHh6UA6OMyYlt" -O transitions_file.zip && rm -rf /tmp/cookies.txt`
+`wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1o4KV1VPLdI0rxRTAFhmRMrFGdph1M8J-' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1o4KV1VPLdI0rxRTAFhmRMrFGdph1M8J-" -O transitions_file.npz && rm -rf /tmp/cookies.txt`
 - macro_action with the cube and tomato objects:  
-`wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1AZuAQQr2IE6JU2SoCMS0PO69o1wQ1c_L' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1AZuAQQr2IE6JU2SoCMS0PO69o1wQ1c_L" -O double_objects.zip && rm -rf /tmp/cookies.txt`
+`wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1CsBWzcbPGndsNV2wJBoikK6fG6szz2vm' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1CsBWzcbPGndsNV2wJBoikK6fG6szz2vm" -O double_objects.npz && rm -rf /tmp/cookies.txt`
 - joint with the cube object:  
-`wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=12j-RzgnnGDDsuWO58uAcaM_h_2xj9cxE' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=12j-RzgnnGDDsuWO58uAcaM_h_2xj9cxE" -O joints_transitions_file.zip && rm -rf /tmp/cookies.txt`
+`wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1GPb49NNpLwqgnPvFr2rWjgm_k-Te-VqN' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1GPb49NNpLwqgnPvFr2rWjgm_k-Te-VqN" -O joints_transitions_file.npz && rm -rf /tmp/cookies.txt`
 
-**Attention -** Before the files can be used you need to extract in the data folder (contained in the main folder) the npy file from the zip file.
+**Note:** these are Numpyz compressed files, to use them check the baseline/config.yaml file and ensure data `experience_data:` points to the file and that `compressed_data: true`.
